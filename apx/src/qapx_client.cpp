@@ -51,5 +51,20 @@ void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QV
    emit requirePortData(port->getPortIndex(), name, value);
 }
 
+void Client::setProvidePort(int portId, QVariant &value)
+{
+   mNodeData.setProvidePort(portId,value);
+}
+
+int Client::getProvidePortId(QString &name)
+{
+   return getProvidePortId(name.toLatin1().constData());
+}
+
+int Client::getProvidePortId(const char *name)
+{
+   return mNodeData.getProvidePortId(name);
+}
+
 
 }

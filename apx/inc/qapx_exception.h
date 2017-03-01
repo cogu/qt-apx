@@ -18,6 +18,18 @@ namespace Apx
    public:
       CompilerException(const char *message): std::runtime_error(message){}
    };
+
+   class VariantTypeException : public std::runtime_error
+   {
+   public:
+      VariantTypeException(const char *message): std::runtime_error(message){}
+   };
+
+   class VMException : public std::runtime_error
+   {
+   public:
+      VMException(const char *message): std::runtime_error(message){}
+   };
 }
 
 

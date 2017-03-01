@@ -77,6 +77,7 @@ void QApxIStreamBuf::write(QByteArray &chunk)
                mParseState = APX_PARSE_STATE_NONE;
                mEventHandler->apx_istream_endTextMsg();               
             }
+            break;
          }
          else if (pLineEnd == 0)
          {
@@ -96,7 +97,7 @@ void QApxIStreamBuf::write(QByteArray &chunk)
          }
          else
          {
-            qDebug("[PLUGIN] parse failure");
+            qDebug("[PLUGIN] parse failure, line=%d",mLine);
             Q_ASSERT(0);
          }
       }

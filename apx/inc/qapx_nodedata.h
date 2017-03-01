@@ -85,12 +85,15 @@ namespace Apx
       Apx::OutputFile *getDefinitionFile() {return mDefinitionFile;}
       void setNodeHandler(NodeHandler *handler){mNodeHandler=handler;}
       NodeHandler *getNodeHandler(){return mNodeHandler;}
+      int getProvidePortId(const char *name);
+      void setProvidePort(int portId, QVariant &value);
 
 
    protected:
       void processNode(QByteArray &bytes);
       void cleanup();
       void populatePortDataMap();
+      void writeProvidePortRaw(int portId,const char *pSrc, int length);
 #ifdef UNIT_TEST
    public:
 #else
@@ -111,6 +114,7 @@ namespace Apx
       Apx::DataVM mUnpackVM; //virtual machine used for unpacking data
       Apx::DataVM mPackVM; //virtual machine used for packing data (in case we are running in a multi-threaded environment)
       NodeHandler *mNodeHandler;
+
    };
 
 

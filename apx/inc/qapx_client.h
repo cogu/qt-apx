@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariant>
 #include "qapx_nodedata.h"
 #include "qremotefile.h"
 #include <QHostAddress>
@@ -26,6 +27,11 @@ namespace Apx
 
       //NodeHandler API
       void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value);
+
+      //client user API
+      void setProvidePort(int portId, QVariant &value);
+      int getProvidePortId(QString &name);
+      int getProvidePortId(const char *name);
 
    protected:
       NodeData mNodeData;

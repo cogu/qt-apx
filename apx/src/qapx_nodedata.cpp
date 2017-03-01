@@ -1,10 +1,10 @@
-
+#include <cstring>
 #include "qapxbytearrayparser.h"
 #include "qapx_nodedata.h"
 #include "qapx_exception.h"
 #include "qapx_compiler.h"
 
-
+using namespace std;
 
 /**
  * @brief NodeData constructir
@@ -111,6 +111,85 @@ void Apx::NodeData::inPortDataWriteNotify(quint32 offset, QByteArray &data)
          {
             break;
          }
+      }
+   }
+}
+
+/**
+ * @brief returns the correspondng id of provide port with matching name
+ * @param name
+ * @return non-negative id of provide port. -1 on failure.
+ */
+int Apx::NodeData::getProvidePortId(const char *name)
+{
+   if (mNode == NULL)
+   {
+      return -1;
+   }
+   int numProvidePorts = mNode->getNumProvidePorts();
+   for (int i= 0;i<numProvidePorts;i++)
+   {
+      QApxSimplePort *port = mNode->getProvidePortById(i);
+      Q_ASSERT(port != NULL);
+      if(strcmp(name, port->getName())==0)
+      {
+         return i;
+      }
+   }
+   return -1;
+}
+
+
+/**
+ * @brief writes value to provide port with corresponding port id
+ * @param portId
+ * @param value
+ */
+void Apx::NodeData::setProvidePort(int portId, QVariant &value)
+{
+   QByteArray serializedData;
+   if ( (portId >= 0) && (portId < mOutPortPackProg.length()) )
+   {
+      const PackUnpackProg &progInfo = mOutPortPackProg.at(portId);
+      int exception = VM_EXCEPTION_INVALID_VARIANT_TYPE;
+      switch(progInfo.vtype)
+      {
+      case VTYPE_SCALAR:
+         exception = mPackVM.exec(progInfo.prog,serializedData,value);
+         break;
+      case VTYPE_MAP:
+         if (value.canConvert<QVariantMap>())
+         {
+            QVariantMap map = value.toMap();
+            exception = mPackVM.exec(progInfo.prog,serializedData,map);
+         }
+         break;
+      case VTYPE_LIST:
+         if (value.canConvert<QVariantMap>())
+         {
+            QVariantList list = value.toList();
+            exception = mPackVM.exec(progInfo.prog,serializedData,list);
+         }
+         break;
+      default:
+         break;
+      }
+      if (exception == VM_EXCEPTION_INVALID_VARIANT_TYPE)
+      {
+         QString message("invalid variant type");
+         message.append(value.typeName());
+         throw Apx::VariantTypeException(message.toLatin1().constData());
+      }
+      else if(exception != VM_EXCEPTION_NO_EXCEPTION)
+      {
+         QString message("error code=");
+         message.append(QString::number(exception));
+         throw Apx::VMException(message.toLatin1().constData());
+      }
+      else
+      {
+         //successfully serialized data into serializedData array
+         writeProvidePortRaw(portId, serializedData.constData(), serializedData.length());
       }
    }
 }
@@ -237,6 +316,28 @@ void Apx::NodeData::populatePortDataMap()
                Q_ASSERT(ppNext<=ppEnd);
             }
          }
+      }
+   }
+}
+
+/**
+ * @brief writes serialized bytes directly to the output file
+ * @param portId
+ * @param pSrc
+ * @param length
+ */
+void Apx::NodeData::writeProvidePortRaw(int portId, const char *pSrc, int length)
+{
+   if ( (portId >= 0) && (portId < mOutPortDataElements.length()) )
+   {
+      const PortDataElement &dataElement = mOutPortDataElements.at(portId);
+      if ( dataElement.length == (quint32)length)
+      {
+         mOutPortDataFile->write((const quint8*) pSrc, dataElement.offset, dataElement.length);
+      }
+      else
+      {
+         Q_ASSERT(0); ///maybe throw an exception here?
       }
    }
 }
