@@ -23,7 +23,8 @@ HEADERS += \
     $$PWD/inc/qapx_nodedata.h \
     $$PWD/inc/qapx_compiler.h \
     $$PWD/inc/qapx_datavm.h \
-	$$PWD/inc/qapxdataelement.h \
+    $$PWD/inc/qapx_exception.h \
+    $$PWD/inc/qapxdataelement.h \
     $$PWD/inc/qapxdatatype.h \
     $$PWD/inc/qapxfileparser.h \
     $$PWD/inc/qapxsimplenode.h \

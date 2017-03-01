@@ -8,11 +8,12 @@
 #include <QHostAddress>
 #include "qapx_filemap.h"
 #include "qremotefile.h"
+#include "qapx_datavm.h"
 
 namespace Apx
 {
 
-   class Client : public QObject
+   class Client : public QObject, public NodeHandler
    {
       Q_OBJECT
    public:
@@ -23,18 +24,20 @@ namespace Apx
       void createLocalNode(QString &apxText);
       void connectTcp(QHostAddress address,quint16 port);
 
+      //NodeHandler API
+      void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value);
+
    protected:
       NodeData mNodeData;
       Apx::FileMap mLocalFileMap;
       Apx::FileMap mRemoteFileMap;
       RemoteFile::FileManager *mFileManager;
       RemoteFile::SocketAdapter *mSocketAdapter;
+      Apx::DataVM mUnpackVM; //virtual machine used for unpacking data
+      Apx::DataVM mPackVM; //virtual machine used for packing data (in case we are running in a multi-threaded environment)
 
   signals:
-      void requirePortData(int portId, QString &portName, QByteArray &portData);
-
-   public slots:
-      void onRequirePortData(int portIndex);
+      void requirePortData(int portId, QString &portName, QVariant &value);
 
    };
 }

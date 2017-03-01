@@ -14,7 +14,7 @@ void TestApxNodeData::test_createNodeData()
    "P\"MainBeam\"C(0,3):=3\n"
    "P\"FuelLevel\"C\n"
    "P\"ParkBrakeFault\"T[0]:=3\n"
-   "R\"TurnIndicator_StalkStatus\"C(0,7):=7\n"
+   "R\"TurnIndicator_StalkSLevel\"C(0,7):=7\n"
    "R\"RheostatLevel\"C:=255\n";
 
    Apx::NodeData *nodeData = new Apx::NodeData(apxText);

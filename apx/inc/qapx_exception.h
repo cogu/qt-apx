@@ -12,6 +12,12 @@ namespace Apx
    public:
       ParseException(const char *message): std::runtime_error(message){}
    };
+
+   class CompilerException : public std::runtime_error
+   {
+   public:
+      CompilerException(const char *message): std::runtime_error(message){}
+   };
 }
 
 

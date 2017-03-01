@@ -27,6 +27,7 @@ void Client::createLocalNode(const char *apxText)
    {
       mFileManager->requestRemoteFile(inPortDataFile);
    }
+   mNodeData.setNodeHandler(this);
 }
 
 void Client::createLocalNode(QString &apxText)
@@ -44,9 +45,11 @@ void Client::connectTcp(QHostAddress address, quint16 port)
    mSocketAdapter->connectTcp(address, port);
 }
 
-void Client::onRequirePortData(int portIndex)
+void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value)
 {
-
+   QString name(port->getName());
+   emit requirePortData(port->getPortIndex(), name, value);
 }
+
 
 }

@@ -10,10 +10,13 @@ public:
    const char *getDataSignature(){return mDsg;}
    const char *getAttr(){return mAttr;}
    virtual bool isRequire() = 0;
+   int getPortIndex(){return mPortIndex;}
+   void setPortIndex(int value){mPortIndex=value;}
 protected:
    char *mName; //strong reference to name
    char *mDsg; //strong reference to data signature
    char *mAttr; //strong reference to port attribute string
+   int mPortIndex;
 };
 
 class QApxSimpleRequirePort : public QApxSimplePort
