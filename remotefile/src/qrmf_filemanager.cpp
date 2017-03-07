@@ -226,13 +226,14 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
          int result = RemoteFile::unpackFileOpen(pBegin, pEnd, startAddress);
          if (result <= 0)
          {
-            qDebug("[FILEMANAGER] unpackFileOpen failed with :%d",(int) result );
+            qDebug("[RMF_FILE_MANAGER] unpackFileOpen failed with :%d",(int) result );
          }
          else
          {
             RemoteFile::File *file = mLocalFileMap->findByAddress(startAddress);
             if (file != NULL)
             {
+               ///TODO: set flag that file is open here
                QByteArray *fileContent = new QByteArray(file->mLength,0);
                int result = file->read((quint8*) fileContent->data(), 0, (quint32) file->mLength);
                if (result != (int) file->mLength)
