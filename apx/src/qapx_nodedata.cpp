@@ -295,9 +295,13 @@ void Apx::NodeData::populatePortDataMap()
          Q_ASSERT(mInPortDataMap != NULL);
          PortDataElement **ppEnd = mInPortDataMap+numBytes;
          for (int i=0;i<mInPortDataElements.length();i++)
-         {
-            *ppNext++=&mInPortDataElements[i];
+         {            
             Q_ASSERT(ppNext<=ppEnd);
+            for (quint32 j=0; j<mInPortDataElements[i].length; j++)
+            {
+               *ppNext++=&mInPortDataElements[i];
+               Q_ASSERT(ppNext<=ppEnd);
+            }
          }
       }
       if (mOutPortDataFile != NULL)
