@@ -10,6 +10,8 @@
 
 namespace RemoteFile {
 
+class FileManager;
+
 enum FileType {
    RMF_FILE_TYPE_FIXED,
    RMF_FILE_TYPE_DYNAMIC,
@@ -36,6 +38,8 @@ public:
    quint8 mDigestData[RMF_DIGEST_SIZE];
    bool isWeakRef;                     //default true
    bool isOpen;                        //default false
+   RemoteFile::FileManager *mFileManager;
+
 
    File();   
    File(QString &name, quint32 length);

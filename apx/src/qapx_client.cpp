@@ -1,4 +1,5 @@
 #include "qapx_client.h"
+#include <QtGlobal>
 
 namespace Apx
 {
@@ -47,6 +48,7 @@ void Client::connectTcp(QHostAddress address, quint16 port)
 
 void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value)
 {
+   (void) nodeData;
    QString name(port->getName());
    emit requirePortData(port->getPortIndex(), name, value);
 }
@@ -56,14 +58,24 @@ void Client::setProvidePort(int portId, QVariant &value)
    mNodeData.setProvidePort(portId,value);
 }
 
-int Client::getProvidePortId(QString &name)
+int Client::findProvidePortId(QString &name)
 {
-   return getProvidePortId(name.toLatin1().constData());
+   return mNodeData.findProvidePortId(qUtf8Printable(name));
 }
 
-int Client::getProvidePortId(const char *name)
+int Client::findProvidePortId(const char *name)
 {
-   return mNodeData.getProvidePortId(name);
+   return mNodeData.findProvidePortId(name);
+}
+
+int Client::findRequirePortId(QString &name)
+{
+   return mNodeData.findRequirePortId(qUtf8Printable(name));
+}
+
+int Client::findRequirePortId(const char *name)
+{
+   return mNodeData.findRequirePortId(name);
 }
 
 

@@ -3,8 +3,8 @@ SOURCES += \
     $$PWD/src/qapx_nodedata.cpp \
     $$PWD/src/qapx_filemap.cpp \
     $$PWD/src/qapx_file.cpp \
-	$$PWD/src/qapx_datavm.cpp \
-	$$PWD/src/qapx_compiler.cpp \    
+    $$PWD/src/qapx_datavm.cpp \
+    $$PWD/src/qapx_compiler.cpp \
     $$PWD/src/qapxdataelement.cpp \
     $$PWD/src/qapxdatatype.cpp \
     $$PWD/src/qapxfileparser.cpp \

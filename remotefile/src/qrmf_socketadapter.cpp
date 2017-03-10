@@ -47,6 +47,7 @@ SocketAdapter::~SocketAdapter()
          QObject::disconnect(mTcpSocket, SIGNAL(disconnected(void)), this, SLOT(onDisconnected(void)));
          QObject::disconnect(mTcpSocket, SIGNAL(readyRead(void)), this, SLOT(onReadyread(void)));
       }
+	  break;
    case RMF_SOCKET_TYPE_LOCAL:
       if(mLocalSocket->state() != 0)
       {
@@ -231,12 +232,12 @@ const char *SocketAdapter::parseData(const char *pBegin, const char *pEnd)
 void SocketAdapter::onConnected()
 {
    sendGreetingHeader();
-   qDebug()<<"SocketAdapter::onConnected";
+   //qDebug()<<"SocketAdapter::onConnected";
 }
 
 void SocketAdapter::onDisconnected()
 {
-   qDebug()<<"SocketAdapter::onDisconnected";
+   //qDebug()<<"SocketAdapter::onDisconnected";
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
 }
 
@@ -289,7 +290,7 @@ void SocketAdapter::onReadyread()
                }
                else if (pNext == NULL)
                {
-                  qDebug("[SOCKET_ADAPTER] parse error detected");
+                  qDebug("[RMF_SOCKET_ADAPTER] parse error detected");
                   break;
                }
                else
@@ -336,13 +337,13 @@ void SocketAdapter::onReconnectTimeout(void)
 
 void SocketAdapter::onTcpSocketError(QAbstractSocket::SocketError error)
 {
-   qDebug("[PLUGIN] TcpSocketError %d",error);
+   qDebug("[RMF_SOCKET_ADAPTER] TcpSocketError %d",error);
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
 }
 
 void SocketAdapter::onLocalSocketError(QLocalSocket::LocalSocketError error)
 {
-   qDebug("[PLUGIN] LocalSocketError %d",error);
+   qDebug("[RMF_SOCKET_ADAPTER] LocalSocketError %d",error);
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
 }   
 

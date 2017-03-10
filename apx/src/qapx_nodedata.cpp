@@ -1,4 +1,5 @@
 #include <cstring>
+#include <QDebug>
 #include "qapxbytearrayparser.h"
 #include "qapx_nodedata.h"
 #include "qapx_exception.h"
@@ -120,9 +121,9 @@ void Apx::NodeData::inPortDataWriteNotify(quint32 offset, QByteArray &data)
  * @param name
  * @return non-negative id of provide port. -1 on failure.
  */
-int Apx::NodeData::getProvidePortId(const char *name)
+int Apx::NodeData::findProvidePortId(const char *name) const
 {
-   if (mNode == NULL)
+   if ( (mNode == NULL) || (name == NULL) )
    {
       return -1;
    }
@@ -145,8 +146,9 @@ int Apx::NodeData::getProvidePortId(const char *name)
  * @param portId
  * @param value
  */
-void Apx::NodeData::setProvidePort(int portId, QVariant &value)
+bool Apx::NodeData::setProvidePort(int portId, QVariant &value)
 {
+   bool retval = false;
    QByteArray serializedData;
    if ( (portId >= 0) && (portId < mOutPortPackProg.length()) )
    {
@@ -187,11 +189,73 @@ void Apx::NodeData::setProvidePort(int portId, QVariant &value)
          throw Apx::VMException(message.toLatin1().constData());
       }
       else
-      {
+      {         
+         retval = true;
          //successfully serialized data into serializedData array
          writeProvidePortRaw(portId, serializedData.constData(), serializedData.length());
       }
    }
+   return retval;
+}
+
+/**
+ * @brief returns the correspondng id of the require port with matching name
+ * @param name
+ * @return non-negative id of require port. -1 on failure.
+ */
+int Apx::NodeData::findRequirePortId(const char *name) const
+{
+   if ( (mNode == NULL) || (name == NULL) )
+   {
+      return -1;
+   }
+   int numRequirePorts = mNode->getNumRequirePorts();
+   for (int i= 0;i<numRequirePorts;i++)
+   {
+      QApxSimplePort *port = mNode->getRequirePortById(i);
+      Q_ASSERT(port != NULL);
+      if(strcmp(name, port->getName())==0)
+      {
+         return i;
+      }
+   }
+   return -1;
+}
+
+int Apx::NodeData::getNumRequirePorts() const
+{
+   if (mNode != NULL)
+   {
+      return mNode->getNumRequirePorts();
+   }
+   return -1;
+}
+
+int Apx::NodeData::getNumProvidePorts() const
+{
+   if (mNode != NULL)
+   {
+      return mNode->getNumProvidePorts();
+   }
+   return -1;
+}
+
+QApxSimplePort *Apx::NodeData::getRequirePortById(int id) const
+{
+   if (mNode != NULL)
+   {
+      return mNode->getRequirePortById(id);
+   }
+   return (QApxSimplePort*) NULL;
+}
+
+QApxSimplePort *Apx::NodeData::getProvidePortById(int id) const
+{
+   if (mNode != NULL)
+   {
+      return mNode->getProvidePortById(id);
+   }
+   return (QApxSimplePort*) NULL;
 }
 
 
@@ -331,7 +395,7 @@ void Apx::NodeData::populatePortDataMap()
  * @param length
  */
 void Apx::NodeData::writeProvidePortRaw(int portId, const char *pSrc, int length)
-{
+{   
    if ( (portId >= 0) && (portId < mOutPortDataElements.length()) )
    {
       const PortDataElement &dataElement = mOutPortDataElements.at(portId);

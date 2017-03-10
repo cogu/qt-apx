@@ -30,8 +30,12 @@ namespace Apx
 
       //client user API
       void setProvidePort(int portId, QVariant &value);
-      int getProvidePortId(QString &name);
-      int getProvidePortId(const char *name);
+      int findProvidePortId(QString &name);
+      int findProvidePortId(const char *name);
+      int findRequirePortId(QString &name);
+      int findRequirePortId(const char *name);
+
+      Apx::NodeData *getNodeData() {return &mNodeData;}
 
    protected:
       NodeData mNodeData;

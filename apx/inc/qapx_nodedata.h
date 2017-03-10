@@ -85,8 +85,13 @@ namespace Apx
       Apx::OutputFile *getDefinitionFile() {return mDefinitionFile;}
       void setNodeHandler(NodeHandler *handler){mNodeHandler=handler;}
       NodeHandler *getNodeHandler(){return mNodeHandler;}
-      int getProvidePortId(const char *name);
-      void setProvidePort(int portId, QVariant &value);
+      int findProvidePortId(const char *name) const;
+      bool setProvidePort(int portId, QVariant &value);
+      int findRequirePortId(const char *name) const;
+      int getNumRequirePorts() const;
+      int getNumProvidePorts() const;
+      QApxSimplePort *getRequirePortById(int id) const; //NOTE: QApxSimplePort will soon be refactored. The new name will be Apx::Port
+      QApxSimplePort *getProvidePortById(int id) const; //NOTE: QApxSimplePort will soon be refactored. The new name will be Apx::Port
 
 
    protected:

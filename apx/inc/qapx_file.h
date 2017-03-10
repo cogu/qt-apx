@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QMutex>
 #include "qrmf_file.h"
+#include "qrmf_filemanager.h"
 
 namespace Apx
 {
@@ -43,7 +44,7 @@ namespace Apx
       virtual ~InputFile(){}
       void setNodeDataHandler(NodeDataHandler *handler) {mNodeDataHandler = handler;}
       NodeDataHandler *getNodeDataHandler() {return mNodeDataHandler;}
-
+      virtual int write(const quint8 *pSrc, quint32 offset, quint32 length);
    };
 
 
@@ -57,6 +58,7 @@ namespace Apx
    public:
       OutputFile(QString name, quint32 length);
       virtual ~OutputFile();
+      virtual int write(const quint8 *pSrc, quint32 offset, quint32 length);
    };
 
 

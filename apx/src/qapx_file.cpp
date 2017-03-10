@@ -1,4 +1,5 @@
 #include <QtGlobal>
+#include <QDebug>
 #include <cstring>
 #include "qapx_file.h"
 #include "qapx_nodedata.h"
@@ -32,18 +33,13 @@ int Apx::File::read(quint8 *pDest, quint32 offset, quint32 length)
 
 int Apx::File::write(const quint8 *pSrc, quint32 offset, quint32 length)
 {
-   int retval = -1;
+   int retval = -1;   
    if ( offset+length <= (quint32) mData.length() )
    {
       mDataLock.lock();
       memcpy(mData.data()+offset, (void*)pSrc, length);
       mDataLock.unlock();
       retval = length;
-      if (mNodeDataHandler != NULL)
-      {
-         QByteArray data((const char*)pSrc,(int) length);
-         mNodeDataHandler->inPortDataWriteNotify(offset,data);
-      }
    }
    return retval;
 }
@@ -54,6 +50,17 @@ Apx::InputFile::InputFile(QString name, quint32 length, NodeDataHandler *handler
 
 }
 
+int Apx::InputFile::write(const quint8 *pSrc, quint32 offset, quint32 length)
+{
+   int result = Apx::File::write(pSrc, offset, length);
+   if ( (result>0) && (mNodeDataHandler != NULL))
+   {
+      QByteArray data((const char*)pSrc,(int) length);
+      mNodeDataHandler->inPortDataWriteNotify(offset,data);
+   }
+   return result;
+}
+
 Apx::OutputFile::OutputFile(QString name, quint32 length): Apx::File(name, length)
 {
 
@@ -62,4 +69,14 @@ Apx::OutputFile::OutputFile(QString name, quint32 length): Apx::File(name, lengt
 Apx::OutputFile::~OutputFile()
 {
 
+}
+
+int Apx::OutputFile::write(const quint8 *pSrc, quint32 offset, quint32 length)
+{
+   int result = Apx::File::write(pSrc, offset, length);
+   if ( (result > 0) && (mFileManager != NULL))
+   {
+      mFileManager->outPortDataWriteNotify(this,pSrc, offset,length);
+   }
+   return result;
 }

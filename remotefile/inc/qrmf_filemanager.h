@@ -35,6 +35,7 @@ namespace RemoteFile
       void requestRemoteFile(RemoteFile::File *file);
       void onConnected(RemoteFile::TransmitHandler *transmitHandler);
       void onMsgReceived(const char *msgData, int msgLen);
+      void outPortDataWriteNotify(File *file, const quint8 *pSrc, quint32 offset, quint32 length);
    protected:
       void processCmd(const char *pBegin, const char *pEnd);
       void processFileWrite(quint32 address, bool more_bit, const char *data, quint32 dataLen);
@@ -44,7 +45,7 @@ namespace RemoteFile
       RemoteFile::FileMap2 *mRemoteFileMap;
       QList<RemoteFile::File*> mRequestedFiles;
    signals:
-      message(RemoteFile::Msg msg);
+      void message(RemoteFile::Msg msg);
    };
 }
 

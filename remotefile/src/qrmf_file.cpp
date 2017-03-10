@@ -1,5 +1,6 @@
 #include <cstring>
 #include "qrmf_file.h"
+#include "qrmf_filemanager.h"
 
 namespace RemoteFile
 {
@@ -10,7 +11,9 @@ File::File(): mName(""),
    mFileType(RMF_FILE_TYPE_FIXED), //other file types will be implemented later on
    mDigestType(RMF_DIGEST_TYPE_NONE),
    isWeakRef(true),
-   isOpen(false)
+   isOpen(false),
+   mFileManager(NULL)
+
 {
    memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
 }
@@ -21,7 +24,8 @@ File::File(QString &name, quint32 length) : mName(name),
    mFileType(RMF_FILE_TYPE_FIXED), //other file types will be implemented later on
    mDigestType(RMF_DIGEST_TYPE_NONE),
    isWeakRef(true),
-   isOpen(false)
+   isOpen(false),
+   mFileManager(NULL)
 {
    memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
 }
@@ -33,7 +37,8 @@ File::File(const char *name, quint32 length)
      mFileType(RMF_FILE_TYPE_FIXED), //other file types will be implemented later on
      mDigestType(RMF_DIGEST_TYPE_NONE),
      isWeakRef(true),
-     isOpen(false)
+     isOpen(false),
+     mFileManager(NULL)
   {
      memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
   }

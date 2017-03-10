@@ -101,6 +101,7 @@ FileManager::~FileManager()
 void FileManager::attachLocalFile(File *file)
 {
    mLocalFileMap->insert(file);
+   file->mFileManager = this;
 }
 
 void FileManager::requestRemoteFile(File *file)
@@ -147,6 +148,13 @@ void FileManager::onMsgReceived(const char *msgData, int msgLen)
          processFileWrite(address,more_bit,pNext,dataLen);
       }
    }
+}
+
+void FileManager::outPortDataWriteNotify(RemoteFile::File *file, const quint8 *pSrc, quint32 offset, quint32 length)
+{
+   QByteArray *buf = new QByteArray((const char*)pSrc,length);
+   RemoteFile::Msg msg(RMF_MSG_WRITE_DATA,file->mAddress+offset,0,(void*) buf);
+   emit message(msg);
 }
 
 void FileManager::processCmd(const char *pBegin, const char *pEnd)
@@ -250,7 +258,6 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
    case RMF_CMD_FILE_CLOSE:
       break;
    }
-
 }
 
 void FileManager::processFileWrite(quint32 address, bool more_bit, const char *data, quint32 dataLen)
