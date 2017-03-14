@@ -189,7 +189,7 @@ void RemoteFile::FileMap2::insertDefault(RemoteFile::File *file)
  */
 bool FileMapDefault2::assignFileAddressDefault(File *file)
 {
-   return assignFileAddress(file, RMF_HIGH_START_ADDR, RMF_CMD_START_ADDR, mAddressBoundary);
+   return assignFileAddress(file, RMF_DATA_HIGH_START_ADDR, RMF_CMD_START_ADDR, mAddressBoundary);
 }
 
 

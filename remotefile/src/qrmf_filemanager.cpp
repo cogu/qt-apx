@@ -25,7 +25,7 @@ void FileManagerWorker::onMessage(Msg msg)
          RemoteFile::File *file = (RemoteFile::File*) msg.msgData3;
          if( (mTransmitHandler != NULL) && (file != NULL) )
          {
-            int msgLen = ((int)RMF_ADDR_LEN) + ((int)msg.msgData1);
+            int msgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + ((int)msg.msgData1);
             char *sendBuffer = mTransmitHandler->getSendBuffer(msgLen);
             if (sendBuffer != NULL)
             {
@@ -42,7 +42,7 @@ void FileManagerWorker::onMessage(Msg msg)
       break;
    case RMF_MSG_FILEOPEN:
       {
-         int maxMsgLen = (int) RMF_ADDR_LEN + RMF_FILE_OPEN_LEN;
+         int maxMsgLen = (int) RMF_HIGH_ADDRESS_SIZE + RMF_FILE_OPEN_LEN;
          char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
          if (sendBuffer != NULL)
          {
@@ -61,7 +61,7 @@ void FileManagerWorker::onMessage(Msg msg)
          QByteArray *dataBytes = (QByteArray*) msg.msgData3;
          if( (mTransmitHandler != NULL) && (dataBytes != NULL) )
          {
-            int maxMsgLen = ((int)RMF_ADDR_LEN) + dataBytes->length();
+            int maxMsgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + dataBytes->length();
             char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
             if (sendBuffer != NULL)
             {

@@ -2,16 +2,8 @@
 #define QRMF_PROTO_H
 
 #include <QtGlobal>
+#include "qrmf_base.h"
 #include "qrmf_file.h"
-
-#define RMF_GREETING_START "RMFP/1.0\n"
-#define RMF_NUMHEADER_FORMAT "NumHeader-Format:" //allows values are 16 or 32. This tells other side to expect NumHeader16 or NumHeader32 respectively
-
-#define RMF_ADDR_LEN 4 //the maximum address can be 4 bytes long
-#define RMF_FILEINFO_BASE_LEN      48
-#define RMF_FILE_OPEN_LEN          8
-#define RMF_FILE_CLOSE_LEN         8
-
 
 namespace RemoteFile
 {

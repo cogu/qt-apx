@@ -55,14 +55,13 @@ protected:
    int mTotalReceived;
    QTimer mReconnectTimer;
    RemoteFile::ReceiveHandler *mReceiveHandler;
-   bool mIsGreetingParsed;
+   bool m_isAcknowledgeSeen;
    char *mSendBufPtr;
 
 protected:
    const char* parseData(const char *pBegin,const char *pEnd);
    char *prepareReceive(quint32 readLen);
-   const char* parseRemoteFileData(const char *pBegin, const char *pEnd);
-   const char *parseGreetingData(const char *pBegin, const char *pEnd);
+   const char* parseRemoteFileData(const char *pBegin, const char *pEnd);   
    void sendGreetingHeader();
 
 signals:
