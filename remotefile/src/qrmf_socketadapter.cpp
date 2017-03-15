@@ -398,23 +398,20 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
          pNext=pBegin+headerLen;
          quint32 remain =(quint32) (pEnd-pNext);
          if(remain>=(quint32)msgLen)
-         {
-            qDebug() << "here";
+         {            
             if (m_isAcknowledgeSeen == false)
             {
                if (msgLen == RMF_CMD_TYPE_LEN+RMF_HIGH_ADDRESS_SIZE)
                {
                   quint32 address;
                   quint32 cmdType;
-                  address = qFromBigEndian<quint32>(pNext);
-                  cmdType = qFromLittleEndian<quint32>(pNext+RMF_HIGH_ADDRESS_SIZE);
-                  qDebug() << "here 2";
+                  address = qFromBigEndian<quint32>((const uchar*)pNext);
+                  cmdType = qFromLittleEndian<quint32>( ((const uchar*) pNext)+RMF_HIGH_ADDRESS_SIZE);
                   if ( (address == (RMF_CMD_START_ADDR | RMF_CMD_HIGH_BIT) ) && (cmdType == RMF_CMD_ACK) )
                   {
                      m_isAcknowledgeSeen=true;
                      if (mReceiveHandler != 0)
-                     {
-                        qDebug() << "here 3";
+                     {                        
                         mReceiveHandler->onConnected(this);
                      }
                   }
