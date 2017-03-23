@@ -27,7 +27,13 @@ Apx::File *Apx::FileMap::findByAddress(quint32 address)
    return (Apx::File*) file;
 }
 
+/**
+ * @brief not implemented
+ * @param name
+ * @return
+ */
 Apx::File *Apx::FileMap::findByName(const char *name)
 {
+   (void) name;
    return NULL;
 }

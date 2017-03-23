@@ -47,7 +47,7 @@ int Apx::File::write(const quint8 *pSrc, quint32 offset, quint32 length)
 
 Apx::InputFile::InputFile(QString name, quint32 length, NodeDataHandler *handler) : Apx::File(name, length)
 {
-
+   (void) handler;
 }
 
 int Apx::InputFile::write(const quint8 *pSrc, quint32 offset, quint32 length)
