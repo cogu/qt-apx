@@ -33,7 +33,7 @@ void Client::createLocalNode(const char *apxText)
 
 void Client::createLocalNode(QString &apxText)
 {
-   mNodeData.parse(apxText);
+   createLocalNode(apxText.toUtf8().constData());
 }
 
 void Client::connectTcp(QHostAddress address, quint16 port)
