@@ -269,8 +269,6 @@ void Apx::NodeData::processNode(QByteArray &bytes)
    {
       throw Apx::ParseException("syntax error");
    }
-   mDefinitionFile = new Apx::OutputFile(mNode->getName(), (quint32) bytes.length());
-   mDefinitionFile->write((const quint8*) bytes.constData(), 0, (quint32) bytes.length());
    int numRequirePorts = mNode->getNumRequirePorts();
    int numProvidePorts = mNode->getNumProvidePorts();
    int i;
@@ -298,6 +296,7 @@ void Apx::NodeData::processNode(QByteArray &bytes)
          msg.append(port->getName());
          throw Apx::CompilerException(msg.toLatin1().constData());
       }
+      delete pElement;
    }   
    for (i=0;i<numProvidePorts;i++)
    {
@@ -320,6 +319,7 @@ void Apx::NodeData::processNode(QByteArray &bytes)
          msg.append(port->getName());
          throw Apx::CompilerException(msg.toLatin1().constData());
       }
+      delete pElement;
    }
    if (inputLen > 0)
    {
@@ -334,6 +334,7 @@ void Apx::NodeData::processNode(QByteArray &bytes)
    mDefinitionFile->write((const quint8*) bytes.constData(), 0, (quint32) bytes.length());
 
    populatePortDataMap();
+
 }
 
 void Apx::NodeData::cleanup()

@@ -284,13 +284,14 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
          if (pResult != 0)
          {
             parseDeclaration(decl);
+            delete decl;
          }
          else
          {
             mException = APX_EXCEPTION_INVALID_DECLARATION_LINE;
+            delete decl;
             return false;
-         }
-         delete decl;
+         }         
       }
       break;
    default:
