@@ -3,7 +3,7 @@
  * that are not in use since APX/1.2. However, the parser works fine for parsing APX/1.2 files.
  * This file should be cleaned up and parts of it should be removed.
  */
-#include "qapxstream.h"
+#include "qapx_stream.h"
 #include "qscan.h"
 #include <QtEndian>
 #include <QDebug>

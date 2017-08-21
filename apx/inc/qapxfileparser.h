@@ -1,7 +1,7 @@
 #ifndef QAPXFILEPARSER_H
 #define QAPXFILEPARSER_H
 
-#include "qapxstream.h"
+#include "qapx_stream.h"
 
 class QApxSimpleNode;
 

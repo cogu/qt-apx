@@ -1,7 +1,7 @@
 #ifndef QAPXBYTEARRAYPARSER_H
 #define QAPXBYTEARRAYPARSER_H
 
-#include "qapxstream.h"
+#include "qapx_stream.h"
 
 class QApxSimpleNode;
 

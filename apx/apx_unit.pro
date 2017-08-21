@@ -11,13 +11,14 @@ TEMPLATE = app
 
 
 SOURCES += \
+    $$PWD/src/qapx_client.cpp \
     $$PWD/src/qapx_compiler.cpp \
     $$PWD/src/qapxdataelement.cpp \
     $$PWD/src/qapxdatatype.cpp \
     $$PWD/src/qapxfileparser.cpp \
     $$PWD/src/qapxsimplenode.cpp \
     $$PWD/src/qapxsimpleport.cpp \
-    $$PWD/src/qapxstream.cpp \
+    $$PWD/src/qapx_stream.cpp \
     $$PWD/src/qapxutil.cpp \
     $$PWD/src/qapx_datavm.cpp \
     $$PWD/src/qapxbytearrayparser.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
     test/test_qapx_datavm.cpp
 
 HEADERS += \
+    $$PWD/inc/qapx_client.h \
     $$PWD/inc/qapx_vmbase.h \
     $$PWD/inc/qapx_compiler.h \
     $$PWD/inc/qapxdataelement.h \
@@ -41,7 +43,7 @@ HEADERS += \
     $$PWD/inc/qapxfileparser.h \
     $$PWD/inc/qapxsimplenode.h \
     $$PWD/inc/qapxsimpleport.h \
-    $$PWD/inc/qapxstream.h \
+    $$PWD/inc/qapx_stream.h \
     $$PWD/inc/qapxutil.h \
     $$PWD/inc/qapx_datavm.h \
     $$PWD/inc/qapxbytearrayparser.h \
