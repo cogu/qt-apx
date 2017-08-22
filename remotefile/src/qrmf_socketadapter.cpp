@@ -83,6 +83,15 @@ int SocketAdapter::connectTcp(QHostAddress address, quint16 port)
       mTcpSocket->connectToHost(mTcpAddress, mTcpPort);
       return 0;
    }
+   else if (mSocketType == RMF_SOCKET_TYPE_TCP)
+   {
+      if (mTcpSocket == NULL)
+      {
+         mTcpSocket = new QTcpSocket(this);
+      }
+      m_isAcknowledgeSeen=false;
+      mTcpSocket->connectToHost(mTcpAddress, mTcpPort);
+   }
    return -1;
 }
 
@@ -316,6 +325,7 @@ void SocketAdapter::onReadyread()
 
 void SocketAdapter::onReconnectTimeout(void)
 {
+   qDebug() << "[RMF_SOCKET_ADAPTER] onReconnectTimeout";
    switch(mSocketType)
    {
    case RMF_SOCKET_TYPE_NONE:

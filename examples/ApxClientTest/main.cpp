@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
    "APX/1.2\n"
    "N\"Simulator\"\n"         
    "T\"InactiveActive_T\"C(0,3)\n"
-   "R\"VehicleSpeed\"S\n"
+   "R\"EngineSpeed\"S\n"
    "R\"Greeting\"a[20]:=\"Hello World\"\n"
    "R\"VehicleSpeed\"S:=65535\n"
    "R\"MainBeam\"C(0,3):=3\n"
