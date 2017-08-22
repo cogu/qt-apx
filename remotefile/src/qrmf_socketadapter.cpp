@@ -228,12 +228,14 @@ void SocketAdapter::onConnected()
    m_isAcknowledgeSeen=false;
    sendGreetingHeader();
    //qDebug()<<"SocketAdapter::onConnected";
+   emit connected();
 }
 
 void SocketAdapter::onDisconnected()
 {
    //qDebug()<<"SocketAdapter::onDisconnected";
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
+   emit disconnected();
 }
 
 void SocketAdapter::onReadyread()

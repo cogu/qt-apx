@@ -5,9 +5,18 @@ namespace Apx
 {
 
 Client::Client(QObject *parent) : QObject(parent),
-   mFileManager(NULL), mSocketAdapter(NULL)
+   mSocketAdapter(NULL)
 {
    mFileManager = new RemoteFile::FileManager(&mLocalFileMap, &mRemoteFileMap);
+}
+
+Client::~Client()
+{
+   delete mFileManager;
+   if (mSocketAdapter != NULL)
+   {
+      delete mSocketAdapter;
+   }
 }
 
 void Client::createLocalNode(const char *apxText)
@@ -42,8 +51,18 @@ void Client::connectTcp(QHostAddress address, quint16 port)
    {
       mSocketAdapter = new RemoteFile::SocketAdapter(32,this);
       mSocketAdapter->setReceiveHandler(mFileManager);
+      QObject::connect(mSocketAdapter, SIGNAL(connected()), this, SLOT(onConnected()));
+      QObject::connect(mSocketAdapter, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
    }
    mSocketAdapter->connectTcp(address, port);
+}
+
+void Client::close()
+{
+   if (mSocketAdapter != NULL)
+   {
+      mSocketAdapter->close();
+   }
 }
 
 void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value)
@@ -76,6 +95,16 @@ int Client::findRequirePortId(QString &name)
 int Client::findRequirePortId(const char *name)
 {
    return mNodeData.findRequirePortId(name);
+}
+
+void Client::onConnected()
+{
+   emit connected();
+}
+
+void Client::onDisconnected()
+{
+   emit disconnected();
 }
 
 

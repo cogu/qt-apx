@@ -19,11 +19,12 @@ namespace Apx
       Q_OBJECT
    public:
       Client(QObject *parent=NULL);
-      virtual ~Client(){}
+      virtual ~Client();
 
       void createLocalNode(const char *apxText);
       void createLocalNode(QString &apxText);
       void connectTcp(QHostAddress address,quint16 port);
+      void close();
 
       //NodeHandler API
       void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value);
@@ -46,9 +47,14 @@ namespace Apx
       Apx::DataVM mUnpackVM; //virtual machine used for unpacking data
       Apx::DataVM mPackVM; //virtual machine used for packing data (in case we are running in a multi-threaded environment)
 
+private slots:
+      void onConnected();
+      void onDisconnected();
+
   signals:
       void requirePortData(int portId, QString &portName, QVariant &value);
-
+      void connected();
+      void disconnected();
    };
 }
 

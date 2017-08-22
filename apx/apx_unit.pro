@@ -32,7 +32,9 @@ SOURCES += \
     test/test_qapx_bytearrayparser.cpp \
     test/test_deserializer.cpp \
     test/test_compiler.cpp \
-    test/test_qapx_datavm.cpp
+    test/test_qapx_datavm.cpp \
+    test/test_qapx_node.cpp \
+    test/test_qapx_client.cpp
 
 HEADERS += \
     $$PWD/inc/qapx_client.h \
@@ -57,7 +59,9 @@ HEADERS += \
     test/test_qapx_bytearrayparser.h \
     test/test_deserializer.h \
     test/test_compiler.h \
-    test/test_qapx_datavm.h
+    test/test_qapx_datavm.h \
+    test/test_qapx_node.h \
+    test/test_qapx_client.h
 
 INCLUDEPATH += \
     $$PWD/inc \

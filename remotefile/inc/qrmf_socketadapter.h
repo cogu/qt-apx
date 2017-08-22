@@ -65,6 +65,8 @@ protected:
    void sendGreetingHeader();
 
 signals:
+   void connected(void);
+   void disconnected(void);
 
 public slots:
    void onConnected(void);
