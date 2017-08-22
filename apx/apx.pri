@@ -10,7 +10,7 @@ SOURCES += \
     $$PWD/src/qapxfileparser.cpp \
     $$PWD/src/qapxsimplenode.cpp \
     $$PWD/src/qapxsimpleport.cpp \
-    $$PWD/src/qapxstream.cpp \    
+    $$PWD/src/qapx_stream.cpp \    
     $$PWD/src/qapxbytearrayparser.cpp \
     $$PWD/src/qapx_client.cpp \
     $$PWD/src/qapx_datatrigger.cpp
@@ -29,7 +29,7 @@ HEADERS += \
     $$PWD/inc/qapxfileparser.h \
     $$PWD/inc/qapxsimplenode.h \
     $$PWD/inc/qapxsimpleport.h \
-    $$PWD/inc/qapxstream.h \    
+    $$PWD/inc/qapx_stream.h \    
     $$PWD/inc/qapxbytearrayparser.h \
     $$PWD/inc/qapx_client.h \
     $$PWD/inc/qapx_datatrigger.h

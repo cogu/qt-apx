@@ -62,51 +62,63 @@ void Apx::NodeData::inPortDataWriteNotify(quint32 offset, QByteArray &data)
       quint32 endOffset=offset+(quint32) data.length();
       while(offset<endOffset)
       {
+         quint32 dataLen = (quint32) data.length();
          PortDataElement* dataElement = mInPortDataMap[offset];
          if (dataElement != NULL)
          {
-            int portIndex = dataElement->port->getPortIndex();
-            QVariant value;
-            QVariantMap map;
-            QVariantList list;
-            PackUnpackProg unpackInfo = mInPortUnpackProg.at(portIndex);
-            int exception = VM_EXCEPTION_NO_EXCEPTION;
+            if (dataElement->length <= dataLen)
+            {
+               int portIndex = dataElement->port->getPortIndex();
+               QVariant value;
+               QVariantMap map;
+               QVariantList list;
+               PackUnpackProg unpackInfo = mInPortUnpackProg.at(portIndex);
+               int exception = VM_EXCEPTION_NO_EXCEPTION;
 
-            switch(unpackInfo.vtype)
-            {
-            case VTYPE_SCALAR:
-               exception = mUnpackVM.exec(unpackInfo.prog,data,value);
-               break;
-            case VTYPE_MAP:
-               exception = mUnpackVM.exec(unpackInfo.prog,data,map);
-               if(exception == VM_EXCEPTION_NO_EXCEPTION)
+               switch(unpackInfo.vtype)
                {
-                  value = map;
+               case VTYPE_SCALAR:
+                  exception = mUnpackVM.exec(unpackInfo.prog,data,value);
+                  break;
+               case VTYPE_MAP:
+                  exception = mUnpackVM.exec(unpackInfo.prog,data,map);
+                  if(exception == VM_EXCEPTION_NO_EXCEPTION)
+                  {
+                     value = map;
+                  }
+                  break;
+               case VTYPE_LIST:
+                  exception = mUnpackVM.exec(unpackInfo.prog,data,list);
+                  if(exception == VM_EXCEPTION_NO_EXCEPTION)
+                  {
+                     value = list;
+                  }
+                  break;
+               default:
+                  break;
                }
-               break;
-            case VTYPE_LIST:
-               exception = mUnpackVM.exec(unpackInfo.prog,data,list);
-               if(exception == VM_EXCEPTION_NO_EXCEPTION)
+               if (exception != VM_EXCEPTION_NO_EXCEPTION)
                {
-                  value = list;
+                  qDebug("[APX] exception caught in DataVM: %d",exception);
                }
-               break;
-            default:
-               break;
-            }
-            if (exception != VM_EXCEPTION_NO_EXCEPTION)
-            {
-               qDebug("[APX] exception caught in DataVM: %d",exception);
+               else
+               {
+                  ///TODO: can this be achieved with the extra copy to value?
+                  if (mNodeHandler != NULL)
+                  {
+                     mNodeHandler->inPortDataNotification(this, dataElement->port, value);
+                  }
+               }
+               if ( dataLen > dataElement->length)
+               {
+                  data.remove(0, dataElement->length);
+               }
+               offset+=dataElement->length;
             }
             else
             {
-               ///TODO: can this be achieved with the extra copy to value?
-               if (mNodeHandler != NULL)
-               {
-                  mNodeHandler->inPortDataNotification(this, dataElement->port, value);
-               }
+               break; //QByteArray is shorter than offset
             }
-            offset+=dataElement->length;
          }
          else
          {
