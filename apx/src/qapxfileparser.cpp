@@ -4,7 +4,7 @@
 #include <QTextStream>
 #include <QtGlobal>
 #include "qscan.h"
-#include "qapxsimplenode.h"
+#include "qapx_node.h"
 
 QApxFileParser::QApxFileParser():mNode(0)
 {
@@ -15,9 +15,9 @@ QApxFileParser::~QApxFileParser()
 {
 }
 
-QApxSimpleNode* QApxFileParser::parseNode(const char *filepath)
+Apx::Node* QApxFileParser::parseNode(const char *filepath)
 {
-   mNode = new QApxSimpleNode();
+   mNode = new Apx::Node();
    QFile file(filepath);
    if(!file.open(QIODevice::ReadOnly)) {
        qDebug("[PLUGIN] failed to open file '%s'",filepath);
@@ -34,7 +34,7 @@ QApxSimpleNode* QApxFileParser::parseNode(const char *filepath)
       }
       mApxInStream.close();
    }
-   QApxSimpleNode *retval = mNode;
+   Apx::Node *retval = mNode;
    mNode=NULL;
    return retval;
 }

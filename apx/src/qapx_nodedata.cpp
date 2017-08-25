@@ -1,6 +1,6 @@
 #include <cstring>
 #include <QDebug>
-#include "qapxbytearrayparser.h"
+#include "qapx_bytearrayparser.h"
 #include "qapx_nodedata.h"
 #include "qapx_exception.h"
 #include "qapx_compiler.h"
@@ -273,7 +273,7 @@ QApxSimplePort *Apx::NodeData::getProvidePortById(int id) const
 
 void Apx::NodeData::processNode(QByteArray &bytes)
 {
-   QApxByteArrayParser byteArrayParser;
+   ByteArrayParser byteArrayParser;
    QApxDataElementParser dataElementParser;
    Apx::DataCompiler compiler;
    mNode = byteArrayParser.parseNode(bytes);

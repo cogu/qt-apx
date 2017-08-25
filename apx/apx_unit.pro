@@ -16,12 +16,12 @@ SOURCES += \
     $$PWD/src/qapxdataelement.cpp \
     $$PWD/src/qapxdatatype.cpp \
     $$PWD/src/qapxfileparser.cpp \
-    $$PWD/src/qapxsimplenode.cpp \
+    $$PWD/src/qapx_node.cpp \
     $$PWD/src/qapxsimpleport.cpp \
     $$PWD/src/qapx_stream.cpp \
     $$PWD/src/qapxutil.cpp \
     $$PWD/src/qapx_datavm.cpp \
-    $$PWD/src/qapxbytearrayparser.cpp \
+    $$PWD/src/qapx_bytearrayparser.cpp \
     $$PWD/test_main.cpp \
     $$PWD/test/test_qapx_filemap.cpp \
     src/qapx_filemap.cpp \
@@ -43,12 +43,12 @@ HEADERS += \
     $$PWD/inc/qapxdataelement.h \
     $$PWD/inc/qapxdatatype.h \
     $$PWD/inc/qapxfileparser.h \
-    $$PWD/inc/qapxsimplenode.h \
+    $$PWD/inc/qapx_node.h \
     $$PWD/inc/qapxsimpleport.h \
     $$PWD/inc/qapx_stream.h \
     $$PWD/inc/qapxutil.h \
     $$PWD/inc/qapx_datavm.h \
-    $$PWD/inc/qapxbytearrayparser.h \
+    $$PWD/inc/qapx_bytearrayparser.h \
     inc/qapx_filemap.h \
     inc/qapx_file.h \
     test/test_qapx_filemap.h \

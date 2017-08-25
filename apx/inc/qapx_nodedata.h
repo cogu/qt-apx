@@ -5,7 +5,7 @@
 #include <QByteArray>
 #include <QList>
 #include "qapx_file.h"
-#include "qapxsimplenode.h"
+#include "qapx_node.h"
 #include "qapx_vmbase.h"
 #include "qapxdataelement.h"
 #include "qapx_datavm.h"
@@ -104,7 +104,7 @@ namespace Apx
 #else
    protected:
 #endif
-      QApxSimpleNode *mNode;
+      Apx::Node *mNode;
       Apx::InputFile *mInPortDataFile; //represents the .in file of the node. Is set to NULL in case this node does not have any require ports.
       Apx::OutputFile *mOutPortDataFile; //represents the .out file of the node. Is set to NULL in case this node does not have any provide ports.
       Apx::OutputFile *mDefinitionFile; //represents the .apx file of the node. this is constructed from the nodeText string durint construction.

@@ -1,11 +1,11 @@
 #include <QByteArray>
 #include "test_qapx_bytearrayparser.h"
-#include "qapxsimplenode.h"
-#include "qapxbytearrayparser.h"
+#include "qapx_node.h"
+#include "qapx_bytearrayparser.h"
 
 void TestApxByteParser::parseNormal()
 {
-   QApxByteArrayParser apxByteArrayParser;
+   Apx::ByteArrayParser apxByteArrayParser;
    const char *apx_str =
    "APX/1.2\n"
    "N\"Simulator\"\n"
@@ -17,7 +17,7 @@ void TestApxByteParser::parseNormal()
    "R\"RheostatLevel\"C:=255\n";
 
    QByteArray bytes(apx_str);
-   QApxSimpleNode *node = apxByteArrayParser.parseNode(bytes);
+   Apx::Node *node = apxByteArrayParser.parseNode(bytes);
    QVERIFY(node != NULL);
    delete node;
 }
@@ -27,7 +27,7 @@ void TestApxByteParser::parseNormal()
  */
 void TestApxByteParser::parseBroken()
 {
-   QApxByteArrayParser apxByteArrayParser;
+   Apx::ByteArrayParser apxByteArrayParser;
    const char *apx_str =
    "APX/1.2\n"
    "N\"Simulator\"\n"
@@ -39,6 +39,6 @@ void TestApxByteParser::parseBroken()
    "R\"Rheost"; //this is a broken APX line
 
    QByteArray bytes(apx_str);
-   QApxSimpleNode *node = apxByteArrayParser.parseNode(bytes);
+   Apx::Node *node = apxByteArrayParser.parseNode(bytes);
    QVERIFY(node == NULL);
 }

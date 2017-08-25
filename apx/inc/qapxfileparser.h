@@ -3,14 +3,17 @@
 
 #include "qapx_stream.h"
 
-class QApxSimpleNode;
+namespace Apx
+{
+   class Node;
+}
 
 class QApxFileParser : public QApxIStreamEventHandler
 {
 public:
    QApxFileParser();
    ~QApxFileParser();
-   QApxSimpleNode* parseNode (const char *filepath);
+   Apx::Node* parseNode (const char *filepath);
 
    //QApxIstreamEventHandler API
    void apx_istream_open();
@@ -37,7 +40,7 @@ public:
 
 protected:
    QApxIStreamBuf mApxInStream;
-   QApxSimpleNode *mNode;
+   Apx::Node *mNode;
 };
 
 #endif // QAPXFILEPARSER_H
