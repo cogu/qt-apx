@@ -73,11 +73,18 @@ namespace Apx
       NodeData(QString &apxText);
       virtual ~NodeData();
 
-      void parse(const char *apxText);
-      void parse(QString &apxText);
-
       //NodeDataHandler API
       void inPortDataWriteNotify(quint32 offset, QByteArray &data);
+
+      //NodeData API
+      Apx::Node* load(const char *apxText);
+      Apx::Node* load(QString &apxText);
+      int findProvidePortId(const char *name) const;
+      int findRequirePortId(const char *name) const;
+      bool setProvidePort(int portId, QVariant &value);
+      bool getRequirePortValue(const QApxSimplePort *port, QVariant &value);
+      bool getRequirePortValue(int portIndex, QVariant &value);
+
 
       //Getters and setters
       Apx::InputFile *getInPortDataFile() {return mInPortDataFile;}
@@ -85,16 +92,16 @@ namespace Apx
       Apx::OutputFile *getDefinitionFile() {return mDefinitionFile;}
       void setNodeHandler(NodeHandler *handler){mNodeHandler=handler;}
       NodeHandler *getNodeHandler(){return mNodeHandler;}
-      int findProvidePortId(const char *name) const;
-      bool setProvidePort(int portId, QVariant &value);
-      int findRequirePortId(const char *name) const;
+
       int getNumRequirePorts() const;
       int getNumProvidePorts() const;
       QApxSimplePort *getRequirePortById(int id) const; //NOTE: QApxSimplePort will soon be refactored. The new name will be Apx::Port
       QApxSimplePort *getProvidePortById(int id) const; //NOTE: QApxSimplePort will soon be refactored. The new name will be Apx::Port
-
+      Apx::Node* getNode(void) {return mNode;}
 
    protected:
+      bool getRequirePortValueInternal(int portIndex, QByteArray &data, QVariant &value);
+      Apx::Node* parseNode(QByteArray &bytes);
       void processNode(QByteArray &bytes);
       void cleanup();
       void populatePortDataMap();

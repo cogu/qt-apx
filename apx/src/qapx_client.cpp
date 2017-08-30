@@ -21,7 +21,7 @@ Client::~Client()
 
 void Client::createLocalNode(const char *apxText)
 {
-   mNodeData.parse(apxText);
+   mNodeData.load(apxText);
    InputFile *inPortDataFile = mNodeData.getInPortDataFile();
    OutputFile *outPortDataFile = mNodeData.getOutPortDataFile();
    OutputFile *definitionDataFile = mNodeData.getDefinitionFile();
