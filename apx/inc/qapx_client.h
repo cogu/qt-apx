@@ -30,7 +30,8 @@ namespace Apx
       void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value);
 
       //client user API
-      void setProvidePort(int portId, QVariant &value);
+      Q_DECL_DEPRECATED void setProvidePort(int portId, QVariant &value);
+      void setProvidePortValue(int portId, QVariant &value);
       int findProvidePortId(QString &name);
       int findProvidePortId(const char *name);
       int findRequirePortId(QString &name);

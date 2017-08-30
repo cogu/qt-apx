@@ -24,6 +24,7 @@ bool FileMap2::insert(RemoteFile::File *file)
  */
 bool FileMap2::remove(RemoteFile::File *file)
 {
+   (void) file;
    return false;
 }
 

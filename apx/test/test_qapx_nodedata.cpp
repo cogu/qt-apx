@@ -50,3 +50,54 @@ void TestApxNodeData::test_createNodeData()
    delete nodeData;
 
 }
+
+void TestApxNodeData::test_getRequirePortValue()
+{
+   const char *apx_str =
+      "APX/1.2\n"
+      "N\"Simulator\"\n"
+      "T\"InactiveActive_T\"C(0,3)\n"
+      "R\"VehicleSpeed\"S:=65535\n"
+      "R\"MainBeam\"T[0]:=3\n"
+      "R\"FuelLevel\"C\n"
+      "R\"ParkBrakeActive\"T[0]:=3\n"
+      "R\"RheostatLevel\"C:=255\n";
+      QByteArray apx_text(apx_str);
+      Apx::NodeData *nodeData = new Apx::NodeData(apx_text);
+      Apx::File *outDataFile = nodeData->getOutPortDataFile();
+      Apx::File *inDataFile = nodeData->getInPortDataFile();
+      Apx::Node *node = nodeData->getNode();
+      QVERIFY(node != NULL);
+      QVERIFY(outDataFile == NULL);
+      QVERIFY(inDataFile != NULL);
+      QByteArray testData(6, 0);
+      quint8 *pNext = (quint8*) testData.data();
+      for (int i=0;i<6; i++)
+      {
+         *pNext++ = i;
+      }
+      inDataFile->write((quint8*) testData.data(), 0, testData.length());
+      QVariant value;
+      bool success = nodeData->getRequirePortValue(node->findPortByName("VehicleSpeed"), value);
+      QVERIFY(success == true);
+      QVERIFY(value == QVariant((uint) 256));
+      success = nodeData->getRequirePortValue(node->findPortByName("MainBeam"), value);
+      QVERIFY(success == true);
+      QVERIFY(value == QVariant((uint) 2));
+      success = nodeData->getRequirePortValue(node->findPortByName("FuelLevel"), value);
+      QVERIFY(success == true);
+      QVERIFY(value == QVariant((uint) 3));
+      success = nodeData->getRequirePortValue(node->findPortByName("ParkBrakeActive"), value);
+      QVERIFY(success == true);
+      QVERIFY(value == QVariant((uint) 4));
+      success = nodeData->getRequirePortValue(node->findPortByName("RheostatLevel"), value);
+      QVERIFY(success == true);
+      QVERIFY(value == QVariant((uint) 5));
+      success = nodeData->getRequirePortValue(node->findPortByName("NoSuchSignal"), value);
+      QVERIFY(success == false);
+      success = nodeData->getRequirePortValue(-1, value);
+      QVERIFY(success == false);
+
+
+      delete nodeData;
+}

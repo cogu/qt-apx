@@ -59,12 +59,16 @@ Apx::NodeData::~NodeData()
 
 bool Apx::NodeData::getRequirePortValue(const QApxSimplePort *port, QVariant &value)
 {
-   return getRequirePortValue(port->getPortIndex(), value);
+   if (port != NULL)
+   {
+      return getRequirePortValue(port->getPortIndex(), value);
+   }
+   return false;
 }
 
 bool Apx::NodeData::getRequirePortValue(int portIndex, QVariant &value)
 {
-   if ((mNode != NULL) && (portIndex < mNode->getNumRequirePorts()))
+   if ((mNode != NULL) && (portIndex>=0) && (portIndex < mNode->getNumRequirePorts()))
    {
       Q_ASSERT(mInPortDataElements.length() == mNode->getNumRequirePorts());
       const PortDataElement &dataElement = mInPortDataElements.at(portIndex);
@@ -155,7 +159,7 @@ int Apx::NodeData::findProvidePortId(const char *name) const
  * @param portId
  * @param value
  */
-bool Apx::NodeData::setProvidePort(int portId, QVariant &value)
+bool Apx::NodeData::setProvidePortValue(int portId, QVariant &value)
 {
    bool retval = false;
    QByteArray serializedData;
@@ -464,7 +468,7 @@ bool Apx::NodeData::getRequirePortValueInternal(int portIndex, QByteArray &data,
 {
    QVariantMap map;
    QVariantList list;
-   if ((mNode != NULL) && (portIndex < mNode->getNumRequirePorts()))
+   if ((mNode != NULL) && (portIndex >= 0) && (portIndex < mNode->getNumRequirePorts()))
    {
       PackUnpackProg unpackInfo = mInPortUnpackProg.at(portIndex);
       int exception = VM_EXCEPTION_NO_EXCEPTION;

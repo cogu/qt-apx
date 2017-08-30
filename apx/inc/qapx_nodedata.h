@@ -81,7 +81,7 @@ namespace Apx
       Apx::Node* load(QString &apxText);
       int findProvidePortId(const char *name) const;
       int findRequirePortId(const char *name) const;
-      bool setProvidePort(int portId, QVariant &value);
+      bool setProvidePortValue(int portId, QVariant &value);
       bool getRequirePortValue(const QApxSimplePort *port, QVariant &value);
       bool getRequirePortValue(int portIndex, QVariant &value);
 

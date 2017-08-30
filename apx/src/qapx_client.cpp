@@ -72,9 +72,14 @@ void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QV
    emit requirePortData(port->getPortIndex(), name, value);
 }
 
-void Client::setProvidePort(int portId, QVariant &value)
+Q_DECL_DEPRECATED void Client::setProvidePort(int portId, QVariant &value)
 {
-   mNodeData.setProvidePort(portId,value);
+   setProvidePortValue(portId, value);
+}
+
+void Client::setProvidePortValue(int portId, QVariant &value)
+{
+   mNodeData.setProvidePortValue(portId,value);
 }
 
 int Client::findProvidePortId(QString &name)
