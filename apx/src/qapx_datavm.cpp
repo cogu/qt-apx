@@ -1,6 +1,7 @@
 #include "qapx_datavm.h"
 #include "qapx_vmbase.h"
 #include <QtEndian>
+#include <QDebug>
 
 namespace Apx
 {
@@ -108,11 +109,10 @@ int DataVM::execProg(const QByteArray &prog)
    while(pNext<pEnd)
    {
       int opCode;
-      const char *pMark=pNext;
+      const char* const pMark=pNext;
       pNext=parseOpCode(pNext,pEnd,opCode);
       if (pNext>pMark)
       {
-         pMark=pNext;
          pNext = execOperation(opCode,pNext,pEnd,exception);
          if ( exception != VM_EXCEPTION_NO_EXCEPTION )
          {
@@ -460,7 +460,8 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
             }
             else
             {
-               if (mRawData->length() < packLen)
+               const int rawDataLen = mRawData->length();
+               if (rawDataLen < packLen)
                {
                   exception = VM_EXCEPTION_DATA_LEN_TOO_SHORT;
                }
@@ -468,7 +469,7 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
                {
                   //3. setup the data parse pointers and VM Mode
                   mReadBegin=mRawData->constData();
-                  mReadEnd=mReadBegin+mRawData->length();
+                  mReadEnd=mReadBegin+rawDataLen;
                   mReadNext=mReadBegin;
                   mMode = PROG_TYPE_UNPACK;
                }
@@ -479,7 +480,7 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
             //2b. setup the data parse pointers and VM Mode
             mRawData->resize(packLen);
             mWriteNext=(quint8*) mRawData->data();
-            mWriteEnd=(quint8*) mWriteNext+mRawData->length();
+            mWriteEnd=(quint8*) mWriteNext+packLen;
             Q_ASSERT(mRawData->length()==packLen);
             mMode = PROG_TYPE_PACK;
          }

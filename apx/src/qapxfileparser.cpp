@@ -26,11 +26,10 @@ Apx::Node* QApxFileParser::parseNode(const char *filepath)
    {
       QTextStream in(&file);
       mApxInStream.open();
-      while(in.atEnd() == false)
+      QString line;
+      while(in.readLineInto(&line))
       {
-         QString line = in.readLine();
-         QByteArray buf(line.toLatin1());
-         mApxInStream.write(buf);
+         mApxInStream.write(line.toLatin1());
       }
       mApxInStream.close();
    }

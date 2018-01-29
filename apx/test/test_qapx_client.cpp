@@ -1,7 +1,6 @@
 #include "test_qapx_client.h"
 #include "qapx_client.h"
 #include <QSignalSpy>
-#include <QDebug>
 #include <QtCore>
 
 void TestApxClient::createClient()
@@ -38,15 +37,22 @@ void TestApxClient::connectToServer()
    QCoreApplication a(argc, 0);
    Apx::Client *client = new Apx::Client(&a);
    QSignalSpy connectedSpy(client, SIGNAL(connected()));
+   QSignalSpy fullyUpdatedSpy(client, SIGNAL(requirePortFullyRefreshed()));
    QSignalSpy disconnectSpy(client, SIGNAL(disconnected()));
    client->createLocalNode(apx_str);
    Apx::NodeData *nodeData = client->getNodeData();
    QVERIFY(nodeData != 0);
+   QCOMPARE(connectedSpy.count(), 0);
+   QCOMPARE(fullyUpdatedSpy.count(), 0);
+   QCOMPARE(disconnectSpy.count(), 0);
    client->connectTcp(QHostAddress::LocalHost, 5000);
    connectedSpy.wait(5000);
    QCOMPARE(connectedSpy.count(), 1);
+   QCOMPARE(fullyUpdatedSpy.count(), 1);
    client->close();
    disconnectSpy.wait(5000);
+   QCOMPARE(connectedSpy.count(), 1);
+   QCOMPARE(fullyUpdatedSpy.count(), 1);
    QCOMPARE(disconnectSpy.count(), 1);
 
 }

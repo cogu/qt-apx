@@ -5,14 +5,15 @@
 #define RMF_GREETING_START "RMFP/1.0\n"
 #define RMF_NUMHEADER_FORMAT "NumHeader-Format:" //allows values are 16 or 32. This tells other side to expect NumHeader16 or NumHeader32 respectively
 
-#define RMF_CMD_ACK                (quint32) 0   //reserved for future use
-#define RMF_CMD_NACK               (quint32) 1   //reserved for future use
-#define RMF_CMD_EOT                (quint32) 2   //reserved for future use
-#define RMF_CMD_FILE_INFO          (quint32) 3   //serialized file info data structure
-#define RMF_CMD_REVOKE_FILE        (quint32) 4   //used by server to tell clients that the file is no longer available
+#define RMF_DATATYPE_CMD            quint32
+#define RMF_CMD_ACK                (RMF_DATATYPE_CMD) 0   //reserved for future use
+#define RMF_CMD_NACK               (RMF_DATATYPE_CMD) 1   //reserved for future use
+#define RMF_CMD_EOT                (RMF_DATATYPE_CMD) 2   //reserved for future use
+#define RMF_CMD_FILE_INFO          (RMF_DATATYPE_CMD) 3   //serialized file info data structure
+#define RMF_CMD_REVOKE_FILE        (RMF_DATATYPE_CMD) 4   //used by server to tell clients that the file is no longer available
 //range 5-9 reserved for future use
-#define RMF_CMD_FILE_OPEN         (quint32) 10  //opens a file
-#define RMF_CMD_FILE_CLOSE        (quint32) 11  //closes a file
+#define RMF_CMD_FILE_OPEN         (RMF_DATATYPE_CMD) 10  //opens a file
+#define RMF_CMD_FILE_CLOSE        (RMF_DATATYPE_CMD) 11  //closes a file
 
 #define RMF_DIGEST_SIZE          32u //32 bytes is suitable for storing a sha256 hash
 #define RMF_MAXLEN_FILE_NAME     255u

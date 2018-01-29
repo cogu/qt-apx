@@ -18,13 +18,13 @@ namespace Apx
       QApxDataType *getTypeById(int i);
       void appendRequirePort(QApxSimpleRequirePort *port);
       void appendProvidePort(QApxSimpleProvidePort *port);
-      QApxSimplePort *getRequirePortById(int i);
-      QApxSimplePort *getProvidePortById(int i);
-      int getNumRequirePorts(){return mRequirePorts.size();}
-      int getNumProvidePorts(){return mProvidePorts.size();}
-      QApxSimplePort *findPortByName(const char *name);
+      QApxSimplePort *getRequirePortById(int i) const;
+      QApxSimplePort *getProvidePortById(int i) const;
+      int getNumRequirePorts() const {return mRequirePorts.size();}
+      int getNumProvidePorts() const {return mProvidePorts.size();}
+      QApxSimplePort *findPortByName(const char *name) const;
       void setName(const QString &name);
-      QString &getName();
+      const QString &getName() const;
 
    protected:
       QString mName;
@@ -32,9 +32,9 @@ namespace Apx
       QList<QApxSimplePort*> mRequirePorts;
       QList<QApxSimplePort*> mProvidePorts;
       QMap<QString,QApxSimplePort*> mPortMap;
-      typedef QList<QApxSimplePort*>::iterator PortListIterator;
-      typedef QList<QApxDataType*>::iterator DataTypeListIterator;
-      typedef QMap<QString,QApxSimplePort*>::iterator PortMapItertator;
+      typedef QList<QApxSimplePort*>::const_iterator PortListIterator;
+      typedef QList<QApxDataType*>::const_iterator DataTypeListIterator;
+      typedef QMap<QString,QApxSimplePort*>::const_iterator PortMapItertator;
    };
 }
 #endif //QAPX_NODE_H

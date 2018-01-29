@@ -4,8 +4,10 @@
 namespace Apx
 {
 
-Client::Client(QObject *parent) : QObject(parent),
-   mSocketAdapter(NULL)
+Client::Client(QObject *parent, bool inPortNotifyWithName)
+  : QObject(parent)
+  , mInPortNotifyWithName(inPortNotifyWithName)
+  , mSocketAdapter(NULL)
 {
    mFileManager = new RemoteFile::FileManager(&mLocalFileMap, &mRemoteFileMap);
 }
@@ -36,16 +38,17 @@ void Client::createLocalNode(const char *apxText)
    if (inPortDataFile != NULL)
    {
       mFileManager->requestRemoteFile(inPortDataFile);
+      QObject::connect(mFileManager, SIGNAL(remoteFileFullWrite(const QString&)), this, SLOT(onRemoteFileFullWrite(const QString&)));
    }
    mNodeData.setNodeHandler(this);
 }
 
-void Client::createLocalNode(QString &apxText)
+void Client::createLocalNode(const QString &apxText)
 {
    createLocalNode(apxText.toUtf8().constData());
 }
 
-void Client::connectTcp(QHostAddress address, quint16 port)
+void Client::connectTcp(const QHostAddress& address, quint16 port)
 {
    if (mSocketAdapter == NULL)
    {
@@ -65,11 +68,17 @@ void Client::close()
    }
 }
 
-void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value)
+void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, const QVariant &value)
 {
    (void) nodeData;
-   QString name(port->getName());
-   emit requirePortData(port->getPortIndex(), name, value);
+   if (mInPortNotifyWithName)
+   {
+      emit requirePortData(port->getPortIndex(), QString(port->getName()), value);
+   }
+   else
+   {
+      emit requirePortDataIdOnly(port->getPortIndex(), value);
+   }
 }
 
 Q_DECL_DEPRECATED void Client::setProvidePort(int portId, QVariant &value)
@@ -82,22 +91,22 @@ void Client::setProvidePortValue(int portId, QVariant &value)
    mNodeData.setProvidePortValue(portId,value);
 }
 
-int Client::findProvidePortId(QString &name)
+int Client::findProvidePortId(const QString &name) const
 {
    return mNodeData.findProvidePortId(qUtf8Printable(name));
 }
 
-int Client::findProvidePortId(const char *name)
+int Client::findProvidePortId(const char* const name) const
 {
    return mNodeData.findProvidePortId(name);
 }
 
-int Client::findRequirePortId(QString &name)
+int Client::findRequirePortId(const QString &name) const
 {
    return mNodeData.findRequirePortId(qUtf8Printable(name));
 }
 
-int Client::findRequirePortId(const char *name)
+int Client::findRequirePortId(const char* const name) const
 {
    return mNodeData.findRequirePortId(name);
 }
@@ -110,6 +119,12 @@ void Client::onConnected()
 void Client::onDisconnected()
 {
    emit disconnected();
+}
+
+void Client::onRemoteFileFullWrite(const QString& fileName)
+{
+   Q_UNUSED(fileName);
+   emit requirePortsFullyRefreshed();
 }
 
 

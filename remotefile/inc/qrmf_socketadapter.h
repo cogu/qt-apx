@@ -40,7 +40,7 @@ class SocketAdapter : public QObject,public RemoteFile::TransmitHandler
 public:
    explicit SocketAdapter(int numHeaderBits=32,QObject *parent = 0);
    virtual ~SocketAdapter();
-   int connectTcp(QHostAddress address,quint16 port);
+   int connectTcp(const QHostAddress& address,quint16 port);
    int connectLocal(const char *filename); //connects to local socket in unix, named pipe on Windows
 #ifdef UNIT_TEST
    int connectMock(MockSocket *socket);

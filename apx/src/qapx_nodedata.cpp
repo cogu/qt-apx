@@ -74,9 +74,12 @@ bool Apx::NodeData::getRequirePortValue(int portIndex, QVariant &value)
       const PortDataElement &dataElement = mInPortDataElements.at(portIndex);
       quint32 offset = dataElement.offset;
       quint32 length = dataElement.length;
-      QByteArray tmpData(length, 0); //TODO: How to get array of unitialized data instead?
-      mInPortDataFile->read((quint8*) tmpData.data(), offset, length);
-      return getRequirePortValueInternal(portIndex, tmpData, value);
+      QByteArray tmpData;
+      tmpData.resize(length);
+      if ((int)length == mInPortDataFile->read((quint8*) tmpData.data(), offset, length))
+      {
+         return getRequirePortValueInternal(portIndex, tmpData, value);
+      }
    }
    return false;
 }
@@ -91,28 +94,28 @@ bool Apx::NodeData::getRequirePortValue(int portIndex, QVariant &value)
  */
 void Apx::NodeData::inPortDataWriteNotify(quint32 offset, QByteArray &data)
 {
-
-   if ( offset+data.length() <= (quint32)mInPortDataMapLen)
+   quint32 dataLen = (quint32) data.length();
+   const quint32 endOffset=offset+dataLen;
+   if ( endOffset <= (quint32)mInPortDataMapLen)
    {
-      quint32 endOffset=offset+(quint32) data.length();
+      QVariant value;
       while(offset<endOffset)
       {
-         quint32 dataLen = (quint32) data.length();
-         PortDataElement* dataElement = mInPortDataMap[offset];
+         const PortDataElement* const dataElement = mInPortDataMap[offset];
          if (dataElement != NULL)
          {
             if (dataElement->length <= dataLen)
             {
-               QVariant value;
-               int portIndex = dataElement->port->getPortIndex();
-               bool result = getRequirePortValueInternal(portIndex, data, value);
+               const int portIndex = dataElement->port->getPortIndex();
+               const bool result = getRequirePortValueInternal(portIndex, data, value);
                if ( (result == true) && (mNodeHandler != NULL) )
-               {                  
+               {
                   mNodeHandler->inPortDataNotification(this, dataElement->port, value);
                }
                if ( dataLen > dataElement->length)
                {
                   data.remove(0, dataElement->length);
+                  dataLen -= dataElement->length;
                }
                offset+=dataElement->length;
             }
@@ -134,7 +137,7 @@ void Apx::NodeData::inPortDataWriteNotify(quint32 offset, QByteArray &data)
  * @param name
  * @return non-negative id of provide port. -1 on failure.
  */
-int Apx::NodeData::findProvidePortId(const char *name) const
+int Apx::NodeData::findProvidePortId(const char* const name) const
 {
    if ( (mNode == NULL) || (name == NULL) )
    {
@@ -186,6 +189,7 @@ bool Apx::NodeData::setProvidePortValue(int portId, QVariant &value)
             exception = mPackVM.exec(progInfo.prog,serializedData,list);
          }
          break;
+      case VTYPE_INVALID: // Intentional fallthru
       default:
          break;
       }
@@ -218,7 +222,7 @@ bool Apx::NodeData::setProvidePortValue(int portId, QVariant &value)
  * @param name
  * @return non-negative id of require port. -1 on failure.
  */
-int Apx::NodeData::findRequirePortId(const char *name) const
+int Apx::NodeData::findRequirePortId(const char* const name) const
 {
    if ( (mNode == NULL) || (name == NULL) )
    {
@@ -294,6 +298,7 @@ void Apx::NodeData::processNode(QByteArray &bytes)
    int i;
    int inputLen=0;
    int outputLen=0;
+   QByteArray pack_unpack_prog;
    for (i=0;i<numRequirePorts;i++)
    {
       QApxSimplePort *port = mNode->getRequirePortById(i);
@@ -304,11 +309,11 @@ void Apx::NodeData::processNode(QByteArray &bytes)
       PortDataElement elem(port, (quint32) inputLen, (quint32) pElement->packLen);
       mInPortDataElements.append(elem);
       inputLen+=pElement->packLen;
-      QByteArray unpack_prog;
-      int result = compiler.genUnpackData(unpack_prog, pElement);
+      pack_unpack_prog.clear();
+      int result = compiler.genUnpackData(pack_unpack_prog, pElement);
       if (result == 0)
       {
-         mInPortUnpackProg.append(PackUnpackProg(pElement, unpack_prog));
+         mInPortUnpackProg.append(PackUnpackProg(pElement, pack_unpack_prog));
       }
       else
       {
@@ -327,11 +332,11 @@ void Apx::NodeData::processNode(QByteArray &bytes)
       Q_ASSERT(pElement != NULL);
       mOutPortDataElements.append(PortDataElement(port, (quint32) outputLen, (quint32) pElement->packLen));
       outputLen+=pElement->packLen;
-      QByteArray pack_prog;
-      int result = compiler.genPackData(pack_prog, pElement);
+      pack_unpack_prog.clear();
+      int result = compiler.genPackData(pack_unpack_prog, pElement);
       if (result == 0)
       {
-         mOutPortPackProg.append(PackUnpackProg(pElement, pack_prog));
+         mOutPortPackProg.append(PackUnpackProg(pElement, pack_unpack_prog));
       }
       else
       {
@@ -343,14 +348,14 @@ void Apx::NodeData::processNode(QByteArray &bytes)
    }
    if (inputLen > 0)
    {
-      mInPortDataFile = new Apx::InputFile(mNode->getName()+QString(".in"), inputLen);
+      mInPortDataFile = new Apx::InputFile(mNode->getName()+Apx::File::cInSuffix, inputLen);
       mInPortDataFile->setNodeDataHandler(this);
    }
    if (outputLen > 0)
    {
-      mOutPortDataFile = new Apx::OutputFile(mNode->getName()+QString(".out"), outputLen);
+      mOutPortDataFile = new Apx::OutputFile(mNode->getName()+Apx::File::cOutSuffix, outputLen);
    }
-   mDefinitionFile = new Apx::OutputFile(mNode->getName()+QString(".apx"), bytes.length());
+   mDefinitionFile = new Apx::OutputFile(mNode->getName()+Apx::File::cDefinitionSuffix, bytes.length());
    mDefinitionFile->write((const quint8*) bytes.constData(), 0, (quint32) bytes.length());
 
    populatePortDataMap();
@@ -374,35 +379,32 @@ void Apx::NodeData::populatePortDataMap()
       if (mInPortDataFile != NULL)
       {
          mInPortDataMapLen = mInPortDataFile->mLength; //number of elements, not number of bytes
-         size_t numBytes = mInPortDataMapLen*sizeof(PortDataElement**);
          mInPortDataMap = new PortDataElement*[mInPortDataMapLen];
          PortDataElement **ppNext = mInPortDataMap;
          Q_ASSERT(mInPortDataMap != NULL);
-         PortDataElement **ppEnd = mInPortDataMap+numBytes;
          for (int i=0;i<mInPortDataElements.length();i++)
-         {            
-            Q_ASSERT(ppNext<=ppEnd);
-            for (quint32 j=0; j<mInPortDataElements[i].length; j++)
+         {
+            PortDataElement& currPortElem = mInPortDataElements[i];
+            for (quint32 j=0; j<currPortElem.length; j++)
             {
-               *ppNext++=&mInPortDataElements[i];
-               Q_ASSERT(ppNext<=ppEnd);
+               Q_ASSERT(ppNext<(mInPortDataMap+mInPortDataMapLen*sizeof(PortDataElement**)));
+               *ppNext++=&currPortElem;
             }
          }
       }
       if (mOutPortDataFile != NULL)
       {
          mOutPortDataMapLen = mOutPortDataFile->mLength; //number of elements, not number of bytes
-         size_t numBytes = mOutPortDataMapLen*sizeof(PortDataElement**);
          mOutPortDataMap = new PortDataElement*[mOutPortDataMapLen];
          PortDataElement **ppNext = mOutPortDataMap;
          Q_ASSERT(mOutPortDataMap != NULL);
-         PortDataElement **ppEnd = mOutPortDataMap+numBytes;
          for (int i=0;i<mOutPortDataElements.length();i++)
          {
-            for (quint32 j=0; j<mOutPortDataElements[i].length; j++)
+            PortDataElement& currPortElem = mOutPortDataElements[i];
+            for (quint32 j=0; j<currPortElem.length; j++)
             {
-               *ppNext++=&mOutPortDataElements[i];
-               Q_ASSERT(ppNext<=ppEnd);
+               Q_ASSERT(ppNext<(mOutPortDataMap+mOutPortDataMapLen*sizeof(PortDataElement**)));
+               *ppNext++=&currPortElem;
             }
          }
       }
@@ -435,7 +437,7 @@ void Apx::NodeData::writeProvidePortRaw(int portId, const char *pSrc, int length
 Apx::PortDataElement::PortDataElement(QApxSimplePort *_port, quint32 _offset, quint32 _length):
    port(_port), offset(_offset),length(_length){}
 
-Apx::PackUnpackProg::PackUnpackProg(QApxDataElement *pElement, QByteArray _prog)
+Apx::PackUnpackProg::PackUnpackProg(QApxDataElement *pElement, const QByteArray& _prog)
    :prog(_prog)
 {
    Q_ASSERT(pElement != 0);
@@ -466,12 +468,12 @@ Apx::PackUnpackProg::PackUnpackProg(QApxDataElement *pElement, QByteArray _prog)
 
 bool Apx::NodeData::getRequirePortValueInternal(int portIndex, QByteArray &data, QVariant &value)
 {
-   QVariantMap map;
-   QVariantList list;
+   QVariantMap* tempMap = NULL;
+   QVariantList* tempList = NULL;
    if ((mNode != NULL) && (portIndex >= 0) && (portIndex < mNode->getNumRequirePorts()))
    {
-      PackUnpackProg unpackInfo = mInPortUnpackProg.at(portIndex);
-      int exception = VM_EXCEPTION_NO_EXCEPTION;
+      const PackUnpackProg& unpackInfo = mInPortUnpackProg.at(portIndex);
+      int exception = VM_EXCEPTION_INVALID_VARIANT_TYPE;
 
       switch(unpackInfo.vtype)
       {
@@ -479,19 +481,24 @@ bool Apx::NodeData::getRequirePortValueInternal(int portIndex, QByteArray &data,
          exception = mUnpackVM.exec(unpackInfo.prog,data,value);
          break;
       case VTYPE_MAP:
-         exception = mUnpackVM.exec(unpackInfo.prog,data,map);
+         tempMap = new QVariantMap();
+         exception = mUnpackVM.exec(unpackInfo.prog,data,*tempMap);
          if(exception == VM_EXCEPTION_NO_EXCEPTION)
          {
-            value = map;
+            value = *tempMap;
          }
+         delete tempMap;
          break;
       case VTYPE_LIST:
-         exception = mUnpackVM.exec(unpackInfo.prog,data,list);
+         tempList = new QVariantList();
+         exception = mUnpackVM.exec(unpackInfo.prog,data,*tempList);
          if(exception == VM_EXCEPTION_NO_EXCEPTION)
          {
-            value = list;
+            value = *tempList;
          }
+         delete tempList;
          break;
+      case VTYPE_INVALID: // Intentional fallthru
       default:
          break;
       }

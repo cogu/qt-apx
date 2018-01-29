@@ -19,7 +19,7 @@ protected:
 signals:
 
 public slots:
-   void onRequirePortData(int portId, QString &portName, QVariant &value);
+   void onRequirePortData(int portId, const QString &portName, const QVariant &value);
 
 };
 

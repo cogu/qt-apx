@@ -134,7 +134,7 @@ void TestRemoteFileProtocol::test_packFileInfo()
    int result;
 
    result = RemoteFile::packFileInfo(array.data(), array.length(), file1);
-   QCOMPARE(result, RMF_FILEINFO_BASE_LEN+(int)strlen(name1)+1);
+   QCOMPARE(result, (int)RMF_FILEINFO_BASE_LEN+(int)strlen(name1)+1);
 
    QByteArray expected = QByteArray("\x03\x00\x00\x00\x78\x56\x34\x12\xe8\x03\x00\x00\x00\x00\x00\x00" //16
                                     "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" //32
@@ -155,7 +155,7 @@ void TestRemoteFileProtocol::test_unpackFileInfo()
                                     ,RMF_FILEINFO_BASE_LEN+(int)strlen(name1)+1);
    RemoteFile::File file1;
    int result = RemoteFile::unpackFileInfo(array.constData(), array.constData()+array.length(), file1);
-   QCOMPARE(result, RMF_FILEINFO_BASE_LEN+(int)strlen(name1)+1);
+   QCOMPARE(result, (int)RMF_FILEINFO_BASE_LEN+(int)strlen(name1)+1);
    QCOMPARE(file1.mName, QString("file1.txt"));
    QCOMPARE(file1.mAddress, (quint32) 0x12345678);
    QCOMPARE(file1.mLength, (quint32) 1000);
@@ -164,7 +164,7 @@ void TestRemoteFileProtocol::test_unpackFileInfo()
 
    //it should also work if null-terminator is forgotten
    result = RemoteFile::unpackFileInfo(array.constData(), array.constData()+array.length()-1, file1);
-   QCOMPARE(result, RMF_FILEINFO_BASE_LEN+(int)strlen(name1));
+   QCOMPARE(result, (int)RMF_FILEINFO_BASE_LEN+(int)strlen(name1));
    QCOMPARE(file1.mName, QString("file1.txt"));
    QCOMPARE(file1.mAddress, (quint32) 0x12345678);
    QCOMPARE(file1.mLength, (quint32) 1000);
@@ -173,7 +173,7 @@ void TestRemoteFileProtocol::test_unpackFileInfo()
 
    //what if array cuts of directly after RMF_FILEINFO_BASE_LEN bytes?
    result = RemoteFile::unpackFileInfo(array.constData(), array.constData()+RMF_FILEINFO_BASE_LEN, file1);
-   QCOMPARE(result, RMF_FILEINFO_BASE_LEN);
+   QCOMPARE(result, (int)RMF_FILEINFO_BASE_LEN);
    QCOMPARE(file1.mName, QString(""));
    QCOMPARE(file1.mAddress, (quint32) 0x12345678);
    QCOMPARE(file1.mLength, (quint32) 1000);
@@ -186,7 +186,7 @@ void TestRemoteFileProtocol::test_unpackFileInfo()
                          "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" //48
                          "\x00",RMF_FILEINFO_BASE_LEN+1); //49
    result = RemoteFile::unpackFileInfo(array.constData(), array.constData()+array.length(), file1);
-   QCOMPARE(result, RMF_FILEINFO_BASE_LEN+1);
+   QCOMPARE(result, (int)RMF_FILEINFO_BASE_LEN+1);
    QCOMPARE(file1.mName, QString(""));
    QCOMPARE(file1.mAddress, (quint32) 0x12345678);
    QCOMPARE(file1.mLength, (quint32) 1000);
@@ -230,12 +230,12 @@ void TestRemoteFileProtocol::test_unpackFileOpen()
       QCOMPARE(result, 0);
    }
    result = RemoteFile::unpackFileOpen(array.constData(),array.constData()+array.length(),address);
-   QCOMPARE(result, RMF_FILE_OPEN_LEN);
+   QCOMPARE(result, (int)RMF_FILE_OPEN_LEN);
    QCOMPARE(address, (quint32)0x00000000);
 
    array = QByteArray(  "\x0a\x00\x00\x00\x78\x56\x34\x12",RMF_FILE_OPEN_LEN);
    result = RemoteFile::unpackFileOpen(array.constData(),array.constData()+array.length(),address);
-   QCOMPARE(result, RMF_FILE_OPEN_LEN);
+   QCOMPARE(result, (int)RMF_FILE_OPEN_LEN);
    QCOMPARE(address, (quint32)0x12345678);
 
    //verify invalid cmdType check
@@ -279,12 +279,12 @@ void TestRemoteFileProtocol::test_unpackFileClose()
       QCOMPARE(result, 0);
    }
    result = RemoteFile::unpackFileClose(array.constData(),array.constData()+array.length(),address);
-   QCOMPARE(result, RMF_FILE_CLOSE_LEN);
+   QCOMPARE(result, (int)RMF_FILE_CLOSE_LEN);
    QCOMPARE(address, (quint32)0x00000000);
 
    array = QByteArray(  "\x0b\x00\x00\x00\x78\x56\x34\x12",RMF_FILE_CLOSE_LEN);
    result = RemoteFile::unpackFileClose(array.constData(),array.constData()+array.length(),address);
-   QCOMPARE(result, RMF_FILE_CLOSE_LEN);
+   QCOMPARE(result, (int)RMF_FILE_CLOSE_LEN);
    QCOMPARE(address, (quint32)0x12345678);
 
    //verify invalid cmdType check

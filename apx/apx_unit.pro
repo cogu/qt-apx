@@ -68,7 +68,7 @@ INCLUDEPATH += \
     $$PWD/test
 
 DEFINES += \
-    UNIT_TEST\
+    APX_UNIT_TEST\
 
 include(../remotefile/remotefile.pri)
 include(../util/util.pri)
