@@ -11,8 +11,8 @@ namespace RemoteFile
 
 void TestFileManager::test_start_stop()
 {
-   RemoteFile::FileMap *localFileMap = new RemoteFile::FileMapDefault;
-   RemoteFile::FileMap *remoteFileMap = new RemoteFile::FileMapDefault;
+   RemoteFile::FileMap2 *localFileMap = new RemoteFile::FileMapDefault2;
+   RemoteFile::FileMap2 *remoteFileMap = new RemoteFile::FileMapDefault2;
    RemoteFile::FileManager manager(localFileMap, remoteFileMap);
 
    delete localFileMap;
@@ -23,8 +23,8 @@ void TestFileManager::test_onConnect()
 {
    MockTransmitHandler transmitHandler(NULL);
    QSignalSpy spy(&transmitHandler, SIGNAL(messageReceived()));
-   RemoteFile::FileMap *localFileMap = new RemoteFile::FileMapDefault;
-   RemoteFile::FileMap *remoteFileMap = new RemoteFile::FileMapDefault;
+   RemoteFile::FileMap2 *localFileMap = new RemoteFile::FileMapDefault2;
+   RemoteFile::FileMap2 *remoteFileMap = new RemoteFile::FileMapDefault2;
    RemoteFile::FileManager *manager  = new RemoteFile::FileManager(localFileMap, remoteFileMap);
    RemoteFile::File f1("test1.txt",100);
    RemoteFile::File f2("test_data.bin",200);

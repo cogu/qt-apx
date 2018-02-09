@@ -3,10 +3,6 @@
 
 #include <QtTest/QtTest>
 
-#define RMF_FILEINFO_BASE_LEN      48
-#define RMF_FILE_OPEN_LEN          8
-#define RMF_FILE_CLOSE_LEN         8
-
 #define RMF_CMD_ACK                (quint32) 0   //reserved for future use
 #define RMF_CMD_NACK               (quint32) 1   //reserved for future use
 #define RMF_CMD_EOT                (quint32) 2   //reserved for future use

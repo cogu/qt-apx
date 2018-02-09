@@ -9,7 +9,9 @@
 #include <QLocalSocket>
 #include <QTcpSocket>
 #include "qrmf_base.h"
-
+#ifdef UNIT_TEST
+#include "mock_socket.h"
+#endif
 #define RMF_SOCKET_ADAPTER_MIN_BUF_LEN 16384     //16KiB
 #define RMF_SOCKET_ADAPTER_MAX_BUF_LEN 0x4000000 //64MiB
 #define RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS 5000
@@ -17,6 +19,7 @@
 #define RMF_SOCKET_TYPE_NONE           0
 #define RMF_SOCKET_TYPE_TCP            1
 #define RMF_SOCKET_TYPE_LOCAL          2
+#define RMF_SOCKET_TYPE_MOCK           3
 
 namespace RemoteFile
 {
@@ -29,6 +32,9 @@ public:
    virtual ~SocketAdapter();
    int connectTcp(QHostAddress address,quint16 port);
    int connectLocal(const char *filename); //connects to local socket in unix, named pipe on Windows
+#ifdef UNIT_TEST
+   int connectMock(MockSocket *socket);
+#endif
    void close();
    //TransmitHandler Interface
    int getSendAvail();
@@ -48,6 +54,9 @@ protected:
    //used for local socket
    QString mLocalSocketName;
    QLocalSocket *mLocalSocket;
+#ifdef UNIT_TEST
+   MockSocket *mMockSocket;
+#endif
 
    QByteArray mReceiveBuffer;
    QByteArray mSendBuffer;
@@ -68,7 +77,11 @@ signals:
    void connected(void);
    void disconnected(void);
 
+#ifdef UNIT_TEST
+public:
+#else
 public slots:
+#endif
    void onConnected(void);
    void onDisconnected(void);
    void onReadyread(void);

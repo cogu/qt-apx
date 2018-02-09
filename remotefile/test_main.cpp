@@ -2,6 +2,7 @@
 #include "test_numheader.h"
 #include "test_qrmf_proto.h"
 #include "test_qrmf_filemanager.h"
+#include "test_qrmf_socketadapter.h"
 
 
 int main(int argc, char *argv[])
@@ -17,6 +18,9 @@ int main(int argc, char *argv[])
 
       RemoteFile::TestFileManager tc3;
       status |= QTest::qExec(&tc3, argc, argv);
+
+      RemoteFile::TestSocketAdapter tc4;
+      status |= QTest::qExec(&tc4, argc, argv);
    }
    return status;
 }

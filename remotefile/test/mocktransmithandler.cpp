@@ -11,7 +11,7 @@ MockTransmitHandler::MockTransmitHandler(QObject *parent) : QObject(parent)
    mSendBuffer.resize(MIN_TRANSMIT_SIZE);
 }
 
-MockTransmitHandler::send(int offset, int msgLen)
+int MockTransmitHandler::send(int offset, int msgLen)
 {
    Q_ASSERT( (offset>=0) && (offset+msgLen<mSendBuffer.size()));
    mMessages.append(mSendBuffer); //append a copy of mSendBuffer

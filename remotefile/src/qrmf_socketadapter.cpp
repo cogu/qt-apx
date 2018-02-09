@@ -29,10 +29,15 @@ SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
       mNumHeaderBits=32;
       mMaxNumHeaderLen=(int) sizeof(quint32);
    }
-   mTotalReceived=0;   
+   mTotalReceived=0;
+   mReceiveBuffer.resize(RMF_SOCKET_ADAPTER_MIN_BUF_LEN);
+#ifndef UNIT_TEST
    mReconnectTimer.setSingleShot(true);
    QObject::connect(&mReconnectTimer,SIGNAL(timeout(void)),this,SLOT(onReconnectTimeout(void)));
-   mReceiveBuffer.resize(RMF_SOCKET_ADAPTER_MIN_BUF_LEN);
+#endif
+#ifdef UNIT_TEST
+   mMockSocket = NULL;
+#endif
 }
 
 SocketAdapter::~SocketAdapter()
@@ -113,6 +118,20 @@ int SocketAdapter::connectLocal(const char *filename)
    }
    return -1;
 }
+
+#ifdef UNIT_TEST
+int SocketAdapter::connectMock(MockSocket *socket)
+{
+   if (mSocketType == RMF_SOCKET_TYPE_NONE)
+   {
+      mSocketType = RMF_SOCKET_TYPE_MOCK;
+      mMockSocket = socket;
+      m_isAcknowledgeSeen=false;
+      return 0;
+   }
+   return -1;
+}
+#endif
 
 void SocketAdapter::close()
 {
@@ -260,6 +279,11 @@ void SocketAdapter::onReadyread()
    case RMF_SOCKET_TYPE_LOCAL:
       readLen = mLocalSocket->bytesAvailable();
       break;
+#ifdef UNIT_TEST
+   case RMF_SOCKET_TYPE_MOCK:
+      readLen = mMockSocket->bytesAvailable();
+      break;
+#endif
    default:
       return;
    }
@@ -278,10 +302,21 @@ void SocketAdapter::onReadyread()
          {
             result = mTcpSocket->read(pDest,readLen);
          }
-         else
+         else if (mSocketType == RMF_SOCKET_TYPE_LOCAL)
          {
             result = mLocalSocket->read(pDest,readLen);
          }
+#ifdef UNIT_TEST
+         else if (mSocketType == RMF_SOCKET_TYPE_MOCK)
+         {
+            result = mMockSocket->read(pDest,readLen);
+         }
+#endif
+         else
+         {
+            Q_ASSERT(0);
+         }
+
          if (result > 0)
          {
             mRxPending+=(int)result;

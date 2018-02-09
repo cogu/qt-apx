@@ -29,10 +29,10 @@
 
 #define RMF_LOW_ADDRESS_SIZE       2u
 #define RMF_HIGH_ADDRESS_SIZE      4u
-#define RMF_FILEINFO_BASE_LEN      48u
-#define RMF_FILE_OPEN_LEN          8u
-#define RMF_FILE_CLOSE_LEN         8u
-#define RMF_CMD_TYPE_LEN           4u
+#define RMF_FILEINFO_BASE_LEN      48
+#define RMF_FILE_OPEN_LEN          8
+#define RMF_FILE_CLOSE_LEN         8
+#define RMF_CMD_TYPE_LEN           4
 
 namespace RemoteFile
 {

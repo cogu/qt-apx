@@ -262,7 +262,7 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
 
 void FileManager::processFileWrite(quint32 address, bool more_bit, const char *data, quint32 dataLen)
 {
-   (void*) more_bit;
+   (void) more_bit;
    RemoteFile::File *file = mRemoteFileMap->findByAddress(address);
    if ( (file != 0) && (file->isOpen == true) )
    {
