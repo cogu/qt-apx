@@ -41,6 +41,7 @@ public:
    char *getSendBuffer(int msgLen);
    int send(int offset, int msgLen);
    void setReceiveHandler(RemoteFile::ReceiveHandler *handler){mReceiveHandler=handler;}
+   int getRxPending(){return mRxPending;}
 
 protected:
    int mSocketType;

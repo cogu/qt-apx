@@ -11,7 +11,8 @@ class TestSocketAdapter : public QObject
 private slots:
    void test_acknowledge();
    void test_onReadyRead();
-   void test_onReadyReadPartial();
+   void test_onReadyRead_partial_short_msg();
+   void test_onReadyRead_partial_long_msg();
 };
 
 }

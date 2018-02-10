@@ -18,14 +18,14 @@ public:
    void onMsgReceived(const char *msgData, int msgLen);
    void onConnected(RemoteFile::TransmitHandler *transmitHandler);
    void onDisconnected(RemoteFile::TransmitHandler *transmitHandler);
-   void reset();
+   void clearMessages();
 
    QList<QByteArray*> messages;
    TransmitHandler *transmitHandler;
 
 protected:
    void appendMessage(QByteArray *msg);
-   void clearMessages();
+
 
 };
 
