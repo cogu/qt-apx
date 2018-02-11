@@ -127,8 +127,9 @@ void FileManager::onConnected(TransmitHandler *transmitHandler)
    }
 }
 
-void FileManager::onMsgReceived(const char *msgData, int msgLen)
+bool FileManager::onMsgReceived(const char *msgData, int msgLen)
 {
+   bool retval = false;
    const char *pNext = msgData;
    const char *pEnd = msgData+msgLen;
    quint32 address;
@@ -147,7 +148,9 @@ void FileManager::onMsgReceived(const char *msgData, int msgLen)
       {
          processFileWrite(address,more_bit,pNext,dataLen);
       }
+      retval = true;
    }
+   return retval;
 }
 
 void FileManager::outPortDataWriteNotify(RemoteFile::File *file, const quint8 *pSrc, quint32 offset, quint32 length)

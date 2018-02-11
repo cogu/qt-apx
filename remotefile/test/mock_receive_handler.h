@@ -11,20 +11,22 @@ namespace RemoteFile
 class MockReceiveHandler : public ReceiveHandler
 {
 public:
-   MockReceiveHandler(): transmitHandler(NULL){}
+   MockReceiveHandler(): transmitHandler(NULL),mParseResult(true){}
    virtual ~MockReceiveHandler(){
       clearMessages();
    }
-   void onMsgReceived(const char *msgData, int msgLen);
+   bool onMsgReceived(const char *msgData, int msgLen);
    void onConnected(RemoteFile::TransmitHandler *transmitHandler);
    void onDisconnected(RemoteFile::TransmitHandler *transmitHandler);
    void clearMessages();
+   void setParseResult(bool result) {mParseResult = result;}
 
    QList<QByteArray*> messages;
    TransmitHandler *transmitHandler;
 
 protected:
    void appendMessage(QByteArray *msg);
+   bool mParseResult;
 
 
 };

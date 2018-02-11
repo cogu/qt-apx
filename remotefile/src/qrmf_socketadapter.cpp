@@ -17,7 +17,7 @@ namespace RemoteFile
 SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
    QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),mTcpSocket(NULL),
    mLocalSocket(NULL),mReconnectTimer(parent), mReceiveHandler(NULL),m_isAcknowledgeSeen(false),
-   mSendBufPtr(NULL)
+   mSendBufPtr(NULL),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
 {
    if (numHeaderBits==16)
    {
@@ -60,6 +60,7 @@ SocketAdapter::~SocketAdapter()
          QObject::disconnect(mLocalSocket, SIGNAL(connected(void)), this, SLOT(onConnected(void)));
          QObject::disconnect(mLocalSocket, SIGNAL(disconnected(void)), this, SLOT(onDisconnected(void)));
          QObject::disconnect(mLocalSocket, SIGNAL(readyRead(void)), this, SLOT(onReadyread(void)));
+
       }
       break;
    default:
@@ -80,6 +81,7 @@ int SocketAdapter::connectTcp(QHostAddress address, quint16 port)
       mTcpPort = port;
       mSocketType = RMF_SOCKET_TYPE_TCP;
       mTcpSocket = new QTcpSocket(this);
+      mLastSocketError=QAbstractSocket::UnknownSocketError;
       QObject::connect(mTcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(onTcpSocketError(QAbstractSocket::SocketError)));
       QObject::connect(mTcpSocket, SIGNAL(connected(void)),this, SLOT(onConnected(void)));
       QObject::connect(mTcpSocket, SIGNAL(disconnected(void)),this, SLOT(onDisconnected(void)));
@@ -108,6 +110,7 @@ int SocketAdapter::connectLocal(const char *filename)
       mLocalSocketName=QString(filename);
       mLocalSocket = new QLocalSocket(this);
       mLocalSocket->setReadBufferSize(RMF_SOCKET_BUFFER_SIZE_LIMIT);
+      mLastSocketError=QAbstractSocket::UnknownSocketError;
       QObject::connect(mLocalSocket, SIGNAL(error(QLocalSocket::LocalSocketError)),this, SLOT(onLocalSocketError(QLocalSocket::LocalSocketError)));
       QObject::connect(mLocalSocket, SIGNAL(connected(void)),this, SLOT(onConnected(void)));
       QObject::connect(mLocalSocket, SIGNAL(disconnected(void)),this, SLOT(onDisconnected(void)));
@@ -128,11 +131,13 @@ int SocketAdapter::connectMock(MockSocket *socket)
       mMockSocket = socket;
       m_isAcknowledgeSeen=false;
       mMockSocket->setConnectionState(true);
+      mLastSocketError=QAbstractSocket::UnknownSocketError;
       return 0;
    }
    return -1;
 }
 #endif
+
 
 void SocketAdapter::close()
 {
@@ -150,6 +155,7 @@ void SocketAdapter::close()
       break;
    }
 }
+
 
 int SocketAdapter::getSendAvail()
 {
@@ -224,36 +230,35 @@ int SocketAdapter::send(int offset, int msgLen)
 
 void SocketAdapter::onConnected()
 {
+   mErrorCode = RMF_ERR_NONE;
    m_isAcknowledgeSeen=false;
-   sendGreetingHeader();
-   //qDebug()<<"SocketAdapter::onConnected";
+   sendGreetingHeader();   
    emit connected();
 }
 
 void SocketAdapter::onDisconnected()
-{
-   //qDebug()<<"SocketAdapter::onDisconnected";
+{   
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
    emit disconnected();
 }
 
 
 void SocketAdapter::onReadyread()
-{   
-
+{
    qint64 readAvail = getSocketReadAvail();
-   while(readAvail > 0)
+   while( (readAvail > 0) && (mErrorCode == RMF_ERR_NONE))
    {
-      bool result = readHandler((quint32)readAvail);
-      if (result == false)
-      {
-         break;
-      }
+      readHandler((quint32)readAvail);
       readAvail = getSocketReadAvail();
    }
-   if (readAvail < 0)
+   if ( (mErrorCode==RMF_ERR_NONE) && (readAvail < 0) )
    {
-      qDebug() << "getSocketReadAvail failed\n";
+      setError(RMF_ERR_SOCKET_READ_AVAIL_FAIL);
+   }
+   if (mErrorCode != RMF_ERR_NONE)
+   {
+      mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
+      close();
    }
 }
 
@@ -278,19 +283,20 @@ void SocketAdapter::onReconnectTimeout(void)
 
 void SocketAdapter::onTcpSocketError(QAbstractSocket::SocketError error)
 {
-   qDebug("[RMF_SOCKET_ADAPTER] TcpSocketError %d",error);
+   setError(RMF_ERR_SOCKET_EVENT, (qint64) error);
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
+   close();
 }
 
 void SocketAdapter::onLocalSocketError(QLocalSocket::LocalSocketError error)
 {
-   qDebug("[RMF_SOCKET_ADAPTER] LocalSocketError %d",error);
+   setError(RMF_ERR_SOCKET_EVENT, (qint64) error);
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
+   close();
 }   
 
 char *SocketAdapter::prepareReceive(quint32 readLen)
 {
-
    if(mRxPending+readLen > (size_t) mReceiveBuffer.length())
    {
       mReceiveBuffer.resize(mRxPending+readLen);
@@ -327,6 +333,7 @@ qint64 SocketAdapter::getSocketReadAvail()
    {
    case RMF_SOCKET_TYPE_NONE:
       retval= -1;
+      break;
    case RMF_SOCKET_TYPE_TCP:
       retval = mTcpSocket->bytesAvailable();
       break;
@@ -357,6 +364,7 @@ qint64 SocketAdapter::readSocket(char *pDest, quint32 readLen)
       {
       case RMF_SOCKET_TYPE_NONE:
          retval= -1;
+         break;
       case RMF_SOCKET_TYPE_TCP:
          retval = mTcpSocket->read(pDest, (qint64) readLen);
          break;
@@ -375,9 +383,8 @@ qint64 SocketAdapter::readSocket(char *pDest, quint32 readLen)
    return retval;
 }
 
-bool SocketAdapter::readHandler(quint32 readAvail)
-{
-   bool retval = true;
+void SocketAdapter::readHandler(quint32 readAvail)
+{   
    char *pDest = prepareReceive(readAvail);
    if(pDest != 0)
    {
@@ -391,13 +398,11 @@ bool SocketAdapter::readHandler(quint32 readAvail)
          const char *pNext = parseRemoteFileData(pBegin, pEnd);
          if (pNext == NULL)
          {
-            qCritical() << "[RMF_SOCKET_ADAPTER] Error: Invalid data";
-            retval = false;
+            setError(RMF_ERR_BAD_MSG);
          }
          else if (pNext > pEnd)
          {
-            qCritical() << "[RMF_SOCKET_ADAPTER] Error: Parsed beyond buffer size";
-            retval = false;
+            setError(RMF_ERR_INVALID_PARSE);
          }
          else
          {
@@ -418,23 +423,21 @@ bool SocketAdapter::readHandler(quint32 readAvail)
       }
       else
       {
-         qCritical() << "readSocket failed";
-         retval = false;
+         setError(RMF_ERR_SOCKET_READ_FAIL);
       }
    }
    else
    {
-      qCritical() << "Unable to allocate memory for receive buffer. size:" << readAvail;
-      retval=false;
-   }
-   return retval;
+      setError(RMF_ERR_BAD_ALLOC, (qint64) readAvail);
+   }   
 }
+
 
 const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *pEnd)
 {
    if ( (pBegin == 0) || (pEnd == 0) )
    {
-      return NULL;
+      return NULL; //invalid arguments
    }
    /**
     * pBegin is moved forward until there is no more data to parse or there is an incomplete message in buffer
@@ -494,7 +497,11 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
             {
                if (mReceiveHandler != 0)
                {
-                  mReceiveHandler->onMsgReceived(pNext, msgLen);
+                  bool result = mReceiveHandler->onMsgReceived(pNext, msgLen);
+                  if (result == false)
+                  {
+                     setError(RMF_ERR_BAD_MSG);
+                  }
                }
             }
             pNext+=msgLen;
@@ -509,6 +516,31 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
    return pBegin;
 }
 
+void SocketAdapter::setError(quint32 error, qint64 errorExtra)
+{
+   mErrorCode = error;
 
+   switch(error)
+   {
+   case RMF_ERR_NONE:
+      break;
+   case RMF_ERR_SOCKET_READ_FAIL:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error while reading from socket";
+      break;
+   case RMF_ERR_SOCKET_EVENT:
+      mLastSocketError = (QAbstractSocket::SocketError) errorExtra;
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error event from socket: " << ((int) mLastSocketError);
+      break;
+   case RMF_ERR_INVALID_PARSE:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Parsed beyond buffer size";
+      break;
+   case RMF_ERR_BAD_MSG:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Bad message";
+      break;
+   case RMF_ERR_BAD_ALLOC:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Unable to allocate memory for buffer " << (int) errorExtra;
+      break;
+   }
+}
 
 }

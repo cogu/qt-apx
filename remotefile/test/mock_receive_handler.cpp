@@ -3,10 +3,11 @@
 namespace RemoteFile
 {
 
-void MockReceiveHandler::onMsgReceived(const char *msgData, int msgLen)
+bool MockReceiveHandler::onMsgReceived(const char *msgData, int msgLen)
 {
    QByteArray *msg = new QByteArray(msgData, msgLen);
    appendMessage(msg);
+   return mParseResult;
 }
 
 void MockReceiveHandler::onConnected(TransmitHandler *transmitHandler)

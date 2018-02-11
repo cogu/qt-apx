@@ -21,6 +21,16 @@
 #define RMF_SOCKET_TYPE_LOCAL          2
 #define RMF_SOCKET_TYPE_MOCK           3
 
+
+#define RMF_ERR_NONE                   0u
+#define RMF_ERR_SOCKET_READ_FAIL       1u
+#define RMF_ERR_SOCKET_READ_AVAIL_FAIL 2u
+#define RMF_ERR_SOCKET_EVENT           3u
+#define RMF_ERR_INVALID_PARSE          4u
+#define RMF_ERR_BAD_MSG                5u
+#define RMF_ERR_BAD_ALLOC              6u
+
+
 namespace RemoteFile
 {
 
@@ -42,6 +52,8 @@ public:
    int send(int offset, int msgLen);
    void setReceiveHandler(RemoteFile::ReceiveHandler *handler){mReceiveHandler=handler;}
    int getRxPending(){return mRxPending;}
+   quint32 getError(){return mErrorCode;}
+
 
 protected:
    int mSocketType;
@@ -67,6 +79,8 @@ protected:
    RemoteFile::ReceiveHandler *mReceiveHandler;
    bool m_isAcknowledgeSeen;
    char *mSendBufPtr;
+   quint32 mErrorCode;
+   QAbstractSocket::SocketError mLastSocketError;
 
 #ifdef UNIT_TEST
 public:
@@ -78,7 +92,10 @@ protected:
    void sendGreetingHeader();
    qint64 getSocketReadAvail();
    qint64 readSocket(char *pDest, quint32 readLen);
-   bool readHandler(quint32 readAvail);
+   void readHandler(quint32 readAvail);
+   void setError(quint32 error, qint64 errorExtra = -1);
+
+   void disconnectSocket();
 
 signals:
    void connected(void);

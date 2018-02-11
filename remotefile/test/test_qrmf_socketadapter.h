@@ -16,6 +16,7 @@ private slots:
    void test_getSocketReadAvail_single();
    void test_getSocketReadAvail_multi();
    void test_getSocketReadAvail_not_connected();
+   void test_bad_message();
 };
 
 }

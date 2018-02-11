@@ -157,4 +157,24 @@ void TestSocketAdapter::test_getSocketReadAvail_not_connected()
    QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) -1);
 }
 
+void TestSocketAdapter::test_bad_message()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   socket.receive(acknowledge_msg, ACK_MSG_LEN);
+   sockAdapter.onReadyread();
+   QCOMPARE(receiveHandler.messages.length(), 0);
+   const char *msg1="\04abcd";
+   socket.receive(msg1, (int) strlen(msg1));
+   receiveHandler.setParseResult(false);
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_NONE);
+   sockAdapter.onReadyread();
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_BAD_MSG);
+}
+
 }
