@@ -75,23 +75,86 @@ void TestSocketAdapter::test_onReadyRead_partial_short_msg()
 
 void TestSocketAdapter::test_onReadyRead_partial_long_msg()
 {
-    MockReceiveHandler receiveHandler;
-    SocketAdapter sockAdapter;
-    sockAdapter.setReceiveHandler(&receiveHandler);
-    sockAdapter.onConnected();
-    MockSocket socket;
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   socket.receive(acknowledge_msg, ACK_MSG_LEN);
+   sockAdapter.onReadyread();
+   QCOMPARE(receiveHandler.messages.length(), 0);
+   quint32 long_msg_len = (quint32) strlen(ipsum_lorem_msg);
 
-    QCOMPARE(sockAdapter.connectMock(&socket), 0);
-    socket.receive(acknowledge_msg, ACK_MSG_LEN);
-    sockAdapter.onReadyread();
-    QCOMPARE(receiveHandler.messages.length(), 0);
-    quint32 long_msg_len = (quint32) strlen(ipsum_lorem_msg);
+   char *msg = new char[long_msg_len+HEADER_LEN_LONG];
+   QCOMPARE(NumHeader::encode32(&msg[0], (int) HEADER_LEN_LONG, long_msg_len), (int) HEADER_LEN_LONG);
+   quint32 total_msg_len = long_msg_len+HEADER_LEN_LONG;
+   memcpy(&msg[HEADER_LEN_LONG], &ipsum_lorem_msg[0], long_msg_len);
+   QCOMPARE(msg[total_msg_len-1], 'm');
+   for (quint32 i=0;i<total_msg_len-1;i++)
+   {
+       socket.receive(&msg[i],1);
+       sockAdapter.onReadyread();
+       QCOMPARE(receiveHandler.messages.length(), 0);
+   }
+   socket.receive(&msg[total_msg_len-1],1);
+   sockAdapter.onReadyread();
+   QCOMPARE(receiveHandler.messages.length(), 1);
+   QCOMPARE(*receiveHandler.messages.at(0), QByteArray(ipsum_lorem_msg));
 
-    char header[HEADER_LEN_LONG];
-    QCOMPARE(NumHeader::encode32(&header[0], (int) sizeof(header), long_msg_len), (int) HEADER_LEN_LONG);
+   delete[] msg;
+}
 
+void TestSocketAdapter::test_getSocketReadAvail_single()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) 0);
+   socket.receive(acknowledge_msg, ACK_MSG_LEN);
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) ACK_MSG_LEN);
+}
 
+void TestSocketAdapter::test_getSocketReadAvail_multi()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   const char *msg1="abcdefgh";
+   const char *msg2="ijklmn";
+   const char *msg3="opqr";
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) 0);
+   socket.receive(msg1, (int) strlen(msg1));
+   socket.receive(msg2, (int) strlen(msg2));
+   socket.receive(msg3, (int) strlen(msg3));
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) strlen(msg1));
+   socket.dropOne();
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) strlen(msg2));
+   socket.dropOne();
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) strlen(msg3));
+   socket.dropOne();
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) 0);
+}
 
+void TestSocketAdapter::test_getSocketReadAvail_not_connected()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   const char *msg1="abcdefgh";
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) 0);
+   socket.receive(msg1, (int) strlen(msg1));
+   socket.setConnectionState(false); //some kind of error occured here that disconnected the socket
+   QCOMPARE(sockAdapter.getSocketReadAvail(), (qint64) -1);
 }
 
 }

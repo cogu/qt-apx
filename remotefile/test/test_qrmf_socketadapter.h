@@ -13,6 +13,9 @@ private slots:
    void test_onReadyRead();
    void test_onReadyRead_partial_short_msg();
    void test_onReadyRead_partial_long_msg();
+   void test_getSocketReadAvail_single();
+   void test_getSocketReadAvail_multi();
+   void test_getSocketReadAvail_not_connected();
 };
 
 }

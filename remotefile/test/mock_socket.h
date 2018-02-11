@@ -2,18 +2,21 @@
 #define MOCK_SOCKET_H
 
 #include <QByteArray>
+#include <QList>
 
 class MockSocket
 {
-public:
+public:   
    MockSocket();
    void receive(const char *data, int len);
    qint64 bytesAvailable() const;
-   qint64 read(char *data, qint64 maxSize);
+   qint64 read(char *dest, qint64 maxSize);
+   void setConnectionState(bool state);
+   void dropOne();
 
 protected:
-   QByteArray mPendingReceive;
-
+   QList<QByteArray*> mPendingReceive;
+   bool mConnectionState;
 };
 
 #endif // MOCK_SOCKET_H

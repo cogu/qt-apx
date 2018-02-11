@@ -45,7 +45,7 @@ public:
 
 protected:
    int mSocketType;
-   int mRxPending;
+   size_t mRxPending;
    int mNumHeaderBits;
    int mMaxNumHeaderLen;
    //used for tcp socket
@@ -68,11 +68,17 @@ protected:
    bool m_isAcknowledgeSeen;
    char *mSendBufPtr;
 
+#ifdef UNIT_TEST
+public:
+#else
 protected:
-   const char* parseData(const char *pBegin,const char *pEnd);
+#endif
    char *prepareReceive(quint32 readLen);
    const char* parseRemoteFileData(const char *pBegin, const char *pEnd);   
    void sendGreetingHeader();
+   qint64 getSocketReadAvail();
+   qint64 readSocket(char *pDest, quint32 readLen);
+   bool readHandler(quint32 readAvail);
 
 signals:
    void connected(void);

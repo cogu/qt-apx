@@ -127,6 +127,7 @@ int SocketAdapter::connectMock(MockSocket *socket)
       mSocketType = RMF_SOCKET_TYPE_MOCK;
       mMockSocket = socket;
       m_isAcknowledgeSeen=false;
+      mMockSocket->setConnectionState(true);
       return 0;
    }
    return -1;
@@ -220,36 +221,6 @@ int SocketAdapter::send(int offset, int msgLen)
    return 0;
 }
 
-const char *SocketAdapter::parseData(const char *pBegin, const char *pEnd)
-{   
-   /**
-    * pBegin is moved forward until there is no more data to parse or there is an incomplete message in buffer
-    * It returns pBegin which could be pEnd in case ALL data between pBegin and pEnd has been parsed.
-    */
-
-   const char *pNext;
-   while(pBegin<pEnd)
-   {
-      pNext = parseRemoteFileData(pBegin, pEnd);
-      if (pNext==NULL)
-      {
-         qDebug() << "[RMF_SOCKET_ADAPTER] parseRemoteFileData parse failure";
-      }
-      else if (pNext==pBegin)
-      {
-         break; //not enough data in buffer to parse next message
-      }
-      else if (pNext>pBegin)
-      {
-         pBegin=pNext;
-      }
-      else
-      {
-         Q_ASSERT(0); //this must never happen
-      }
-   }
-   return pBegin;
-}
 
 void SocketAdapter::onConnected()
 {
@@ -266,95 +237,23 @@ void SocketAdapter::onDisconnected()
    emit disconnected();
 }
 
+
 void SocketAdapter::onReadyread()
-{
-   quint32 readLen;
-   switch(mSocketType)
-   {
-   case RMF_SOCKET_TYPE_NONE:
-      return;
-   case RMF_SOCKET_TYPE_TCP:
-      readLen = mTcpSocket->bytesAvailable();
-      break;
-   case RMF_SOCKET_TYPE_LOCAL:
-      readLen = mLocalSocket->bytesAvailable();
-      break;
-#ifdef UNIT_TEST
-   case RMF_SOCKET_TYPE_MOCK:
-      readLen = mMockSocket->bytesAvailable();
-      break;
-#endif
-   default:
-      return;
-   }
+{   
 
-   if(readLen>0)
-   {      
-      char *pDest = prepareReceive(readLen);
-      if(pDest != 0)
+   qint64 readAvail = getSocketReadAvail();
+   while(readAvail > 0)
+   {
+      bool result = readHandler((quint32)readAvail);
+      if (result == false)
       {
-         const char *pBegin;
-         const char *pNext = NULL;
-         const char *pEnd;
-         qint64 result;
-
-         if(mSocketType == RMF_SOCKET_TYPE_TCP)
-         {
-            result = mTcpSocket->read(pDest,readLen);
-         }
-         else if (mSocketType == RMF_SOCKET_TYPE_LOCAL)
-         {
-            result = mLocalSocket->read(pDest,readLen);
-         }
-#ifdef UNIT_TEST
-         else if (mSocketType == RMF_SOCKET_TYPE_MOCK)
-         {
-            result = mMockSocket->read(pDest,readLen);
-         }
-#endif
-         else
-         {
-            Q_ASSERT(0);
-         }
-
-         if (result > 0)
-         {
-            mRxPending+=(int)result;
-            pBegin = mReceiveBuffer.constData();
-            pEnd = pBegin+mRxPending;
-            while(pBegin<pEnd)
-            {
-               pNext = parseData(pBegin,pEnd);
-               if(pNext > pBegin)
-               {
-                  pBegin=pNext;
-               }
-               else if (pNext == NULL)
-               {
-                  qDebug("[RMF_SOCKET_ADAPTER] parse error detected");
-                  break;
-               }
-               else
-               {
-                  break;
-               }
-            }
-            if( (pNext!= NULL) && (pNext<pEnd) )
-            {
-               //unparsed bytes in array, move to start of array before next reception
-               mRxPending=(int) (pEnd-pNext);
-               memmove(mReceiveBuffer.data(),pNext,mRxPending);
-            }
-            else{
-               //all bytes parsed or parse error
-               mRxPending=0;
-            }
-         }
+         break;
       }
+      readAvail = getSocketReadAvail();
    }
-   else
+   if (readAvail < 0)
    {
-      qDebug() << "[RMF_SOCKET_ADAPTER] socket read failed";
+      qDebug() << "getSocketReadAvail failed\n";
    }
 }
 
@@ -392,20 +291,155 @@ void SocketAdapter::onLocalSocketError(QLocalSocket::LocalSocketError error)
 char *SocketAdapter::prepareReceive(quint32 readLen)
 {
 
-   if(mRxPending+(int)readLen > mReceiveBuffer.length())
+   if(mRxPending+readLen > (size_t) mReceiveBuffer.length())
    {
       mReceiveBuffer.resize(mRxPending+readLen);
    }
    return mReceiveBuffer.data()+mRxPending;
 }
 
+
+
+/**
+ * @brief sends the RemoteFile greeting header
+ */
+void SocketAdapter::sendGreetingHeader()
+{
+   QByteArray greeting;   
+   greeting.append(RMF_GREETING_START);
+   greeting.append(RMF_NUMHEADER_FORMAT);
+   greeting.append("32\n"); //use NumHeader32 format
+   greeting.append("\n"); //emtpy line at end to terminate header
+   if (mSocketType == RMF_SOCKET_TYPE_TCP)
+   {
+      //prepend greeting with NumHeader32. In most cases the header is in short form, prepending only a single byte.
+      char numHeader[sizeof(quint32)];
+      int headerLen=NumHeader::encode32(&numHeader[0],sizeof(numHeader),greeting.length());
+      greeting.prepend(&numHeader[0],headerLen);
+      mTcpSocket->write(greeting);
+   }
+}
+
+qint64 SocketAdapter::getSocketReadAvail()
+{
+   qint64 retval;
+   switch(mSocketType)
+   {
+   case RMF_SOCKET_TYPE_NONE:
+      retval= -1;
+   case RMF_SOCKET_TYPE_TCP:
+      retval = mTcpSocket->bytesAvailable();
+      break;
+   case RMF_SOCKET_TYPE_LOCAL:
+      retval = mLocalSocket->bytesAvailable();
+      break;
+#ifdef UNIT_TEST
+   case RMF_SOCKET_TYPE_MOCK:
+      retval = mMockSocket->bytesAvailable();
+      break;
+#endif
+   default:
+      retval=-1;
+   }
+   return retval;
+}
+
+qint64 SocketAdapter::readSocket(char *pDest, quint32 readLen)
+{
+   qint64 retval;
+   if ((pDest == 0) || (readLen == 0) )
+   {
+      retval = -1;
+   }
+   else
+   {
+      switch(mSocketType)
+      {
+      case RMF_SOCKET_TYPE_NONE:
+         retval= -1;
+      case RMF_SOCKET_TYPE_TCP:
+         retval = mTcpSocket->read(pDest, (qint64) readLen);
+         break;
+      case RMF_SOCKET_TYPE_LOCAL:
+         retval = mLocalSocket->read(pDest, (qint64) readLen);
+         break;
+   #ifdef UNIT_TEST
+      case RMF_SOCKET_TYPE_MOCK:
+         retval = mMockSocket->read(pDest, (qint64) readLen);
+         break;
+   #endif
+      default:
+         retval=-1;
+      }
+   }
+   return retval;
+}
+
+bool SocketAdapter::readHandler(quint32 readAvail)
+{
+   bool retval = true;
+   char *pDest = prepareReceive(readAvail);
+   if(pDest != 0)
+   {
+      qint64 result = readSocket(pDest, readAvail);
+
+      if (result > 0)
+      {
+         char *pStartOfReceiveBuffer = mReceiveBuffer.data();
+         const char *pBegin = pStartOfReceiveBuffer;
+         const char *pEnd = pDest+result;
+         const char *pNext = parseRemoteFileData(pBegin, pEnd);
+         if (pNext == NULL)
+         {
+            qCritical() << "[RMF_SOCKET_ADAPTER] Error: Invalid data";
+            retval = false;
+         }
+         else if (pNext > pEnd)
+         {
+            qCritical() << "[RMF_SOCKET_ADAPTER] Error: Parsed beyond buffer size";
+            retval = false;
+         }
+         else
+         {
+            size_t unparsedLen = (size_t) (pEnd-pNext);
+            if (unparsedLen > 0)
+            {
+               if (pNext > pBegin)
+               {
+                  memmove(pStartOfReceiveBuffer,pNext,unparsedLen);
+               }
+               mRxPending=unparsedLen;
+            }
+            else
+            {
+               mRxPending=0;
+            }
+         }
+      }
+      else
+      {
+         qCritical() << "readSocket failed";
+         retval = false;
+      }
+   }
+   else
+   {
+      qCritical() << "Unable to allocate memory for receive buffer. size:" << readAvail;
+      retval=false;
+   }
+   return retval;
+}
+
 const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *pEnd)
 {
+   if ( (pBegin == 0) || (pEnd == 0) )
+   {
+      return NULL;
+   }
    /**
     * pBegin is moved forward until there is no more data to parse or there is an incomplete message in buffer
     * It returns pBegin which could be pEnd in case ALL data between pBegin and pEnd has been parsed.
     */
-   const char *pNext;
    while(pBegin<pEnd)
    {
       int headerLen;
@@ -427,25 +461,17 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
          {
             msgLen=(int) tmp;
          }
-         else
-         {
-            return NULL; //parse failure
-         }
       }
-      if (headerLen<0)
-      {
-         return NULL; //parse failure
-      }
-      else if(headerLen==0)
+      if(headerLen==0)
       {
          break; //partial header
       }
       else
       {
-         pNext=pBegin+headerLen;
+         const char *pNext = pBegin+headerLen;
          quint32 remain =(quint32) (pEnd-pNext);
          if(remain>=(quint32)msgLen)
-         {            
+         {
             if (m_isAcknowledgeSeen == false)
             {
                if (msgLen == RMF_CMD_TYPE_LEN+RMF_HIGH_ADDRESS_SIZE)
@@ -458,7 +484,7 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
                   {
                      m_isAcknowledgeSeen=true;
                      if (mReceiveHandler != 0)
-                     {                        
+                     {
                         mReceiveHandler->onConnected(this);
                      }
                   }
@@ -484,24 +510,5 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
 }
 
 
-/**
- * @brief sends the RemoteFile greeting header
- */
-void SocketAdapter::sendGreetingHeader()
-{
-   QByteArray greeting;   
-   greeting.append(RMF_GREETING_START);
-   greeting.append(RMF_NUMHEADER_FORMAT);
-   greeting.append("32\n"); //use NumHeader32 format
-   greeting.append("\n"); //emtpy line at end to terminate header
-   if (mSocketType == RMF_SOCKET_TYPE_TCP)
-   {
-      //prepend greeting with NumHeader32. In most cases the header is in short form, prepending only a single byte.
-      char numHeader[sizeof(quint32)];
-      int headerLen=NumHeader::encode32(&numHeader[0],sizeof(numHeader),greeting.length());
-      greeting.prepend(&numHeader[0],headerLen);
-      mTcpSocket->write(greeting);
-   }
-}
 
 }
