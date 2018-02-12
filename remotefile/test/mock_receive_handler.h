@@ -17,7 +17,7 @@ public:
    }
    bool onMsgReceived(const char *msgData, int msgLen);
    void onConnected(RemoteFile::TransmitHandler *transmitHandler);
-   void onDisconnected(RemoteFile::TransmitHandler *transmitHandler);
+   void onDisconnected();
    void clearMessages();
    void setParseResult(bool result) {mParseResult = result;}
 

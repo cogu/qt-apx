@@ -35,16 +35,9 @@ void FileMap2::clear()
    while(it != mFiles.end())
    {
       RemoteFile::File *file = *it;
-      if (file != NULL)
+      if ( (file != NULL) && (file->isWeakRef==false))
       {
-         if (file->isWeakRef==false)
-         {
-            qDebug() << "removing" << file->mName;
-         }
-         else
-         {
-            qDebug() << "skipping" << file->mName;
-         }
+         delete file;
       }
       it++;
    }

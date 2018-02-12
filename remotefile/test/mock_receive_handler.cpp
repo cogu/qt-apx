@@ -15,6 +15,11 @@ void MockReceiveHandler::onConnected(TransmitHandler *transmitHandler)
    this->transmitHandler = transmitHandler;
 }
 
+void MockReceiveHandler::onDisconnected()
+{
+
+}
+
 void MockReceiveHandler::appendMessage(QByteArray *msg)
 {
    messages.append(msg);
