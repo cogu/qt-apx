@@ -34,6 +34,7 @@ namespace RemoteFile
       void attachLocalFile(RemoteFile::File *file);
       void requestRemoteFile(RemoteFile::File *file);
       void onConnected(RemoteFile::TransmitHandler *transmitHandler);
+      void onDisconnected();
       bool onMsgReceived(const char *msgData, int msgLen);
       void outPortDataWriteNotify(File *file, const quint8 *pSrc, quint32 offset, quint32 length);
    protected:

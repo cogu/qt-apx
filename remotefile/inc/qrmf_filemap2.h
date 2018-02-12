@@ -17,9 +17,10 @@ class FileMap2
 {
 public:
    FileMap2():mLastFileIndex(-1) {}
-   virtual ~FileMap2() {}
+   virtual ~FileMap2() {clear();}
    virtual bool insert(RemoteFile::File *file);
    virtual bool remove(RemoteFile::File *file);
+   void clear();
    int size() {return mFiles.size();}
    bool assignFileAddress(RemoteFile::File *file, quint32 startAddress, quint32 endAddress, quint32 addressBoundary);
    void iterInit(void);

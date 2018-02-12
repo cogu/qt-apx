@@ -239,6 +239,10 @@ void SocketAdapter::onConnected()
 void SocketAdapter::onDisconnected()
 {   
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
+   if (mReceiveHandler != 0)
+   {
+      mReceiveHandler->onDisconnected();
+   }
    emit disconnected();
 }
 
@@ -445,8 +449,8 @@ const char *SocketAdapter::parseRemoteFileData(const char *pBegin, const char *p
     */
    while(pBegin<pEnd)
    {
-      int headerLen;
-      int msgLen;
+      int headerLen = 0;
+      int msgLen = 0;
       if (mNumHeaderBits==16)
       {
          quint16 tmp;

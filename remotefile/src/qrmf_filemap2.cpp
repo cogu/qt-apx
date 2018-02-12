@@ -1,4 +1,5 @@
 #include "qrmf_filemap2.h"
+#include <QDebug>
 
 namespace RemoteFile
 {
@@ -26,6 +27,28 @@ bool FileMap2::remove(RemoteFile::File *file)
 {
    (void) file;
    return false;
+}
+
+void FileMap2::clear()
+{
+   ListIterator it = mFiles.begin();
+   while(it != mFiles.end())
+   {
+      RemoteFile::File *file = *it;
+      if (file != NULL)
+      {
+         if (file->isWeakRef==false)
+         {
+            qDebug() << "removing" << file->mName;
+         }
+         else
+         {
+            qDebug() << "skipping" << file->mName;
+         }
+      }
+      it++;
+   }
+   mFiles.clear();
 }
 
 /**
