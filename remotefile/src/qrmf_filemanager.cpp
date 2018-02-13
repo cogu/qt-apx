@@ -110,7 +110,7 @@ void FileManager::requestRemoteFile(File *file)
 }
 
 void FileManager::onConnected(TransmitHandler *transmitHandler)
-{
+{   
    mLocalFileMap->iterInit();
    RemoteFile::Msg connectMsg(RMF_MSG_CONNECT,0,0, (void*) transmitHandler);
    emit message(connectMsg);
@@ -120,15 +120,21 @@ void FileManager::onConnected(TransmitHandler *transmitHandler)
       if (file == NULL)
       {
          break;
-      }      
+      }
       RemoteFile::File *copy = new RemoteFile::File(*file);
       RemoteFile::Msg msg(RMF_MSG_FILEINFO,RMF_FILEINFO_BASE_LEN+copy->mName.size()+1,0, copy);
       emit message(msg);
    }
 }
 
-void FileManager::onMsgReceived(const char *msgData, int msgLen)
+void FileManager::onDisconnected()
+{   
+   mRemoteFileMap->clear();
+}
+
+bool FileManager::onMsgReceived(const char *msgData, int msgLen)
 {
+   bool retval = false;
    const char *pNext = msgData;
    const char *pEnd = msgData+msgLen;
    quint32 address;
@@ -147,7 +153,9 @@ void FileManager::onMsgReceived(const char *msgData, int msgLen)
       {
          processFileWrite(address,more_bit,pNext,dataLen);
       }
+      retval = true;
    }
+   return retval;
 }
 
 void FileManager::outPortDataWriteNotify(RemoteFile::File *file, const quint8 *pSrc, quint32 offset, quint32 length)
@@ -170,61 +178,43 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
    {
    case RMF_CMD_FILE_INFO:
       {
-         RemoteFile::File *file = new File();
-         int result = RemoteFile::unpackFileInfo(pBegin, pEnd, *file); ///TODO: this needs to be deleted later
+         RemoteFile::File *remoteFile = new File();
+         int result = RemoteFile::unpackFileInfo(pBegin, pEnd, *remoteFile);
          if (result <= 0)
          {
-            qDebug("[FILEMANAGER] unpackFileInfo failed with :%d",(int) result );            
+            qDebug("[FILEMANAGER] unpackFileInfo failed with :%d",(int) result );
+            delete remoteFile;
          }
          else
          {
             int numRequesteFiles = mRequestedFiles.length();
-            int index=-1;
             for (int i=0;i<numRequesteFiles;i++)
             {
-               if (mRequestedFiles[i]->mName == file->mName)
+               if (mRequestedFiles[i]->mName == remoteFile->mName)
                {
-                  if (mRequestedFiles[i]->mLength != file->mLength)
+                  if (mRequestedFiles[i]->mLength != remoteFile->mLength)
                   {
                      qDebug("[FILEMANAGER] Requested file \"%s\" but length does not match. Expected %d, got %d",
-                            file->mName.toLatin1().constData(), mRequestedFiles[i]->mLength, file->mLength);
+                            remoteFile->mName.toLatin1().constData(), mRequestedFiles[i]->mLength, remoteFile->mLength);
                   }
                   else
                   {
-                     //this file was previously requested. move information from file pointer to requestedFile pointer
                      RemoteFile::File *requestedFile = mRequestedFiles[i];
-                     requestedFile->mAddress=file->mAddress;
-                     requestedFile->mFileType=file->mFileType;
-                     requestedFile->mDigestType=file->mDigestType;
-                     memcpy(&requestedFile->mDigestData[0], &file->mDigestData[0], RMF_DIGEST_SIZE);
-                     delete file;
-                     file = NULL;
-                     requestedFile->isOpen=true;
-                     RemoteFile::Msg msg(RMF_MSG_FILEOPEN, requestedFile->mAddress, 0, 0);
+                     requestedFile->mAddress=remoteFile->mAddress;
+                     requestedFile->mFileType=remoteFile->mFileType;
+                     requestedFile->mDigestType=remoteFile->mDigestType;
+                     //switch out remoteFile and requestedFile (requestedFile is of an inherited class)
+                     requestedFile->isWeakRef=true; //prevents deletion by mRemoteFileMap object
+                     delete remoteFile; //switch out remoteFile
+                     remoteFile = requestedFile; //swith in requestedFile
+                     remoteFile->isOpen=true;
+                     RemoteFile::Msg msg(RMF_MSG_FILEOPEN, remoteFile->mAddress, 0, 0);
                      emit message(msg);
-                     index=i;
                      break;
                   }
                }
             }
-            if (index >= 0)
-            {
-               //move item from requested list to remoteFile list
-               RemoteFile::File *requestedFile = mRequestedFiles[index];
-               mRequestedFiles.removeAt(index);
-               mRemoteFileMap->insert(requestedFile);
-            }
-            else
-            {
-               mRemoteFileMap->insert(file);
-               file->isWeakRef=false; //mark object for delayed deletion
-               file = NULL; //prevent early deletion
-            }
-         }         
-         if (file != NULL)
-         {
-            //set file to NULL to prevent it from getting deleted here
-            delete file;
+            mRemoteFileMap->insert(remoteFile);
          }
       }
       break;
@@ -241,7 +231,7 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
             RemoteFile::File *file = mLocalFileMap->findByAddress(startAddress);
             if (file != NULL)
             {
-               ///TODO: set flag that file is open here
+               file->isOpen=true;
                QByteArray *fileContent = new QByteArray(file->mLength,0);
                int result = file->read((quint8*) fileContent->data(), 0, (quint32) file->mLength);
                if (result != (int) file->mLength)

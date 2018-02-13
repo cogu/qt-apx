@@ -52,8 +52,9 @@ class ReceiveHandler
 public:
    ReceiveHandler(){}
    virtual ~ReceiveHandler(){}
-   virtual void onMsgReceived(const char *msgData, int msgLen) = 0;
+   virtual bool onMsgReceived(const char *msgData, int msgLen) = 0;
    virtual void onConnected(RemoteFile::TransmitHandler *transmitHandler) = 0;
+   virtual void onDisconnected() = 0;
 };
 
 }

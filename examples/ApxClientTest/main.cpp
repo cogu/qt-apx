@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
    "APX/1.2\n"
    "N\"Simulator\"\n"         
    "T\"InactiveActive_T\"C(0,3)\n"
+   "P\"TestSignal2\"S:=0\n"
    "R\"EngineSpeed\"S\n"
    "R\"Greeting\"a[20]:=\"Hello World\"\n"
    "R\"VehicleSpeed\"S:=65535\n"
@@ -17,8 +18,9 @@ int main(int argc, char *argv[])
    "R\"FuelLevel\"C\n"
    "R\"ParkBrakeFault\"T[0]:=3\n"
    "R\"TurnIndicator_StalkSLevel\"C(0,7):=7\n"
-   "R\"RheostatLevel\"C:=255\n";
-
+   "R\"RheostatLevel\"C:=255\n"
+   "R\"TestSignal1\"S:=0\n"
+   "\n";
 
 
 
@@ -26,7 +28,7 @@ int main(int argc, char *argv[])
 
    client.createLocalNode(apxText);
    client.connectTcp(QHostAddress::LocalHost, 5000);
-   SimulatorNode simulator;
+   SimulatorNode simulator(&client);
    QObject::connect(&client, &Apx::Client::requirePortData, &simulator, &SimulatorNode::onRequirePortData);
 
    return a.exec();
