@@ -19,7 +19,10 @@ namespace Apx
     */
    class File : public RemoteFile::File
    {
-   public:      
+   public:
+      static const QString cDefinitionSuffix;
+      static const QString cInSuffix;
+      static const QString cOutSuffix;
       File(QString name, quint32 length);
       virtual ~File();
       QByteArray &getFileData(){return mData;}

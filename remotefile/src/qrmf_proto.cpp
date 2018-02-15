@@ -2,6 +2,10 @@
 #include "qrmf_base.h"
 #include <QtEndian>
 
+#define RMF_MORE_BIT_IN_CHAR    0x40u
+#define RMF_LONG_BIT_IN_CHAR    0x80u
+#define RMF_MAX16_ADDRESS       0x3FFFu
+#define RMF_MAX32_ADDRESS       0x3FFFFFFFu
 
 namespace RemoteFile
 {
@@ -17,7 +21,7 @@ int packHeader(char *pDest, int destLimit, quint32 address, bool more_bit)
 {
    int retval = 0; //default is to write 0 bytes intp pDest
    uchar *p = (uchar*) pDest;
-   if(address<16384)
+   if(address <= RMF_MAX16_ADDRESS)
    {
       //address will fit into 16 bits
       if (destLimit>=(int)sizeof(quint16))
@@ -26,20 +30,20 @@ int packHeader(char *pDest, int destLimit, quint32 address, bool more_bit)
          qToBigEndian<quint16>((quint16) address, p);
          if (more_bit == true)
          {
-            p[0]|=0x40u; //activate MORE_BIT
+            p[0]|=RMF_MORE_BIT_IN_CHAR;
          }
       }
    }
-   else if(address < 1073741824)
+   else if(address <= RMF_MAX32_ADDRESS)
    {
       if (destLimit>=(int)sizeof(quint32))
       {
          retval = (int)sizeof(quint32);
          qToBigEndian<quint32>(address, p);
-         p[0]|=0x80u; //activate LONG_BIT
+         p[0]|=RMF_LONG_BIT_IN_CHAR;
          if (more_bit == true)
          {
-            p[0]|=0x40u; //activate MORE_BIT
+            p[0]|=RMF_MORE_BIT_IN_CHAR;
          }
       }
    }
@@ -63,31 +67,26 @@ int packHeader(char *pDest, int destLimit, quint32 address, bool more_bit)
 int unpackHeader(const char *pBegin, const char *pEnd, quint32 *address, bool *more_bit)
 {
    int retval = 0; //default is to assume that the buffer is too small to parse
-   const char *pNext=pBegin;
    if( (pBegin != 0) && (pEnd != 0) && (address != NULL) && (more_bit != NULL))
    {
-      if (pBegin+1<pEnd)
+      const uchar c = *(const uchar*)pBegin;
+      *more_bit = (c & RMF_MORE_BIT_IN_CHAR)? true : false;
+      if(c & RMF_LONG_BIT_IN_CHAR)
       {
-         char c = *pNext;
-         pNext+=2;
-         if(c & 0x80u) //is high_bit set?
+         if(pBegin+sizeof(quint32)<=pEnd) //full address available?
          {
-            if(pNext+1<pEnd) //at least 2 more bytes available?
-            {
-               retval = (int) sizeof(quint32);
-               quint32 tmp = qFromBigEndian<quint32>((const uchar*) pBegin);
-               tmp&=(quint32)0x3FFFFFFFu; //clear the high_bit and more_bit (we still have a copy of more_bit in char c above)
-               *address=tmp;
-            }
-         }
-         else
-         {
-            retval = (int) sizeof(quint16);
-            quint32 tmp = (quint32) qFromBigEndian<quint16>((const uchar*) pBegin);
-            tmp &=0x3FFF;
+            retval = (int) sizeof(quint32);
+            quint32 tmp = qFromBigEndian<quint32>((const uchar*) pBegin);
+            tmp&=RMF_MAX32_ADDRESS; //clear the long_bit and more_bit (we still have a copy of more_bit in char c above)
             *address=tmp;
          }
-         *more_bit = (c & 0x40)? true : false; //is more_bit set?
+      }
+      else if(pBegin+sizeof(quint16)<=pEnd) //full address available?
+      {
+         retval = (int) sizeof(quint16);
+         quint32 tmp = qFromBigEndian<quint16>((const uchar*) pBegin);
+         tmp &=RMF_MAX16_ADDRESS;
+         *address=tmp;
       }
    }
    else
@@ -105,7 +104,7 @@ int unpackHeader(const char *pBegin, const char *pEnd, quint32 *address, bool *m
  * @param file
  * @return number of bytes written into pDest. special values are -1 (invalid arguments) and 0 (destLimit is too small)
  */
-int packFileInfo(char *pDest, int destLimit, File &file)
+int packFileInfo(char *pDest, int destLimit, const File &file)
 {
    int retval = 0;
    if ( (pDest != 0) && (destLimit >= 0) )
@@ -121,7 +120,7 @@ int packFileInfo(char *pDest, int destLimit, File &file)
          qToLittleEndian<quint16>(file.mFileType, p); p+=sizeof(quint16);
          qToLittleEndian<quint16>(file.mDigestType, p); p+=sizeof(quint16);
          memcpy(p,file.mDigestData,RMF_DIGEST_SIZE); p+=RMF_DIGEST_SIZE;
-         memcpy(p, file.mName.toLatin1().data(), nameLen); p+=nameLen;
+         memcpy(p, file.mName.toLatin1().constData(), nameLen); p+=nameLen;
          p[0]=0;
          return needed;
       }
@@ -143,21 +142,24 @@ int packFileInfo(char *pDest, int destLimit, File &file)
 int unpackFileInfo(const char *pBegin, const char *pEnd, File &file, bool networkByteOrder)
 {
    int retval = 0; //default is to assume that the buffer is too small to parse
-   const uchar *pNext = (uchar*) pBegin;
-   const uchar *puEnd = (const uchar*) pEnd;
    if( (pBegin != 0) && (pEnd != 0) )
    {
       if (pBegin+RMF_FILEINFO_BASE_LEN<=pEnd)
       {
+         const uchar *pNext = (uchar*) pBegin;
          if (networkByteOrder)
          {
-            quint32 cmdType = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            const quint32 cmdType = qFromBigEndian<quint32>(pNext);
+            pNext+=sizeof(RMF_DATATYPE_CMD);
             if (cmdType == RMF_CMD_FILE_INFO)
             {
-               file.mAddress = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
-               file.mLength = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
-               file.mFileType = (RemoteFile::FileType) qFromBigEndian<quint16>(pNext); pNext+=sizeof(quint16);
-               file.mDigestType = (RemoteFile::DigestType) qFromBigEndian<quint16>(pNext); pNext+=sizeof(quint16);
+               file.mAddress = qFromBigEndian<quint32>(pNext);
+               pNext+=sizeof(quint32);
+               file.mLength = qFromBigEndian<quint32>(pNext);
+               pNext+=sizeof(quint32);
+               file.mFileType = (RemoteFile::FileType) qFromBigEndian<quint16>(pNext);
+               pNext+=sizeof(quint16);
+               file.mDigestType = (RemoteFile::DigestType) qFromBigEndian<quint16>(pNext);
             }
             else
             {
@@ -166,13 +168,17 @@ int unpackFileInfo(const char *pBegin, const char *pEnd, File &file, bool networ
          }
          else
          {
-            quint32 cmdType = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            const quint32 cmdType = qFromLittleEndian<quint32>(pNext);
+            pNext+=sizeof(RMF_DATATYPE_CMD);
             if (cmdType == RMF_CMD_FILE_INFO)
             {
-               file.mAddress = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
-               file.mLength = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
-               file.mFileType = (RemoteFile::FileType) qFromLittleEndian<quint16>(pNext); pNext+=sizeof(quint16);
-               file.mDigestType = (RemoteFile::DigestType) qFromLittleEndian<quint16>(pNext); pNext+=sizeof(quint16);
+               file.mAddress = qFromLittleEndian<quint32>(pNext);
+               pNext+=sizeof(quint32);
+               file.mLength = qFromLittleEndian<quint32>(pNext);
+               pNext+=sizeof(quint32);
+               file.mFileType = (RemoteFile::FileType) qFromLittleEndian<quint16>(pNext);
+               pNext+=sizeof(quint16);
+               file.mDigestType = (RemoteFile::DigestType) qFromLittleEndian<quint16>(pNext);
             }
             else
             {
@@ -181,10 +187,13 @@ int unpackFileInfo(const char *pBegin, const char *pEnd, File &file, bool networ
          }
          if (retval >= 0)
          {
+            pNext+=sizeof(quint16); // mDigestType size
+            const uchar *puEnd = (const uchar*) pEnd;
             int remain=0;
             int nameLen=0;
             const uchar *pMark;
-            memcpy(&file.mDigestData[0],pNext,RMF_DIGEST_SIZE); pNext+=RMF_DIGEST_SIZE;
+            memcpy(&file.mDigestData[0],pNext,RMF_DIGEST_SIZE);
+            pNext+=RMF_DIGEST_SIZE;
             //treat remaining bytes as the file name
             pMark = pNext;
             remain = (int) (puEnd-pNext);
@@ -234,12 +243,11 @@ int packFileOpen(char *pDest, int destLimit, quint32 address)
    int retval = 0;
    if ( pDest != 0 )
    {
-      int needed = (int) sizeof(quint32)*2;
+      const int needed = (int) (sizeof(address) + sizeof(RMF_DATATYPE_CMD));
       if (needed <= destLimit)
       {
-         uchar *pNext = (uchar*) pDest;
-         qToLittleEndian<quint32>(RMF_CMD_FILE_OPEN, pNext); pNext+=sizeof(quint32);
-         qToLittleEndian<quint32>(address, pNext);
+         qToLittleEndian<quint32>(RMF_CMD_FILE_OPEN, pDest);
+         qToLittleEndian<quint32>(address, pDest + sizeof(RMF_DATATYPE_CMD));
          retval=needed;
       }
    }
@@ -260,17 +268,16 @@ int packFileOpen(char *pDest, int destLimit, quint32 address)
 int unpackFileOpen(const char *pBegin, const char *pEnd, quint32 &address, bool networkByteOrder)
 {
    int retval = 0;
-   const uchar *pNext = (uchar*) pBegin;
    if( (pBegin != 0) && (pEnd != 0) )
    {
       if (pBegin+RMF_FILE_OPEN_LEN<=pEnd)
       {
          if (networkByteOrder)
          {
-            quint32 cmdType = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            const quint32 cmdType = qFromBigEndian<quint32>(pBegin);
             if (cmdType == RMF_CMD_FILE_OPEN)
             {
-               address = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
+               address = qFromBigEndian<quint32>(pBegin + sizeof(RMF_DATATYPE_CMD));
             }
             else
             {
@@ -279,10 +286,10 @@ int unpackFileOpen(const char *pBegin, const char *pEnd, quint32 &address, bool 
          }
          else
          {
-            quint32 cmdType = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            const quint32 cmdType = qFromLittleEndian<quint32>(pBegin);
             if (cmdType == RMF_CMD_FILE_OPEN)
             {
-               address = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
+               address = qFromLittleEndian<quint32>(pBegin + sizeof(RMF_DATATYPE_CMD));
             }
             else
             {
@@ -314,12 +321,11 @@ int packFileClose(char *pDest, int destLimit, quint32 address)
    int retval = 0;
    if ( pDest != 0 )
    {
-      int needed = (int) sizeof(quint32)*2;
+      int needed = (int) (sizeof(address) + sizeof(RMF_DATATYPE_CMD));
       if (needed <= destLimit)
       {
-         uchar *pNext = (uchar*) pDest;
-         qToLittleEndian<quint32>(RMF_CMD_FILE_CLOSE, pNext); pNext+=sizeof(quint32);
-         qToLittleEndian<quint32>(address, pNext);
+         qToLittleEndian<quint32>(RMF_CMD_FILE_CLOSE, pDest);
+         qToLittleEndian<quint32>(address, pDest + sizeof(RMF_DATATYPE_CMD));
          retval=needed;
       }
    }
@@ -340,17 +346,16 @@ int packFileClose(char *pDest, int destLimit, quint32 address)
 int unpackFileClose(const char *pBegin, const char *pEnd, quint32 &address, bool networkByteOrder)
 {
    int retval = 0;
-   const uchar *pNext = (uchar*) pBegin;
    if( (pBegin != 0) && (pEnd != 0) )
    {
       if (pBegin+RMF_FILE_CLOSE_LEN<=pEnd)
       {
          if (networkByteOrder)
          {
-            quint32 cmdType = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            quint32 cmdType = qFromBigEndian<quint32>(pBegin);
             if (cmdType == RMF_CMD_FILE_CLOSE)
             {
-               address = qFromBigEndian<quint32>(pNext); pNext+=sizeof(quint32);
+               address = qFromBigEndian<quint32>(pBegin + sizeof(RMF_DATATYPE_CMD));
             }
             else
             {
@@ -359,10 +364,10 @@ int unpackFileClose(const char *pBegin, const char *pEnd, quint32 &address, bool
          }
          else
          {
-            quint32 cmdType = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
+            quint32 cmdType = qFromLittleEndian<quint32>(pBegin);
             if (cmdType == RMF_CMD_FILE_CLOSE)
             {
-               address = qFromLittleEndian<quint32>(pNext); pNext+=sizeof(quint32);
+               address = qFromLittleEndian<quint32>(pBegin + sizeof(RMF_DATATYPE_CMD));
             }
             else
             {

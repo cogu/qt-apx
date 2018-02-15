@@ -214,13 +214,14 @@ void QApxDataElementParser::calcLen(QApxDataElement *pElement)
 {
    if (pElement->baseType == QAPX_BASE_TYPE_RECORD)
    {
-      pElement->packLen=0;
+      int packLen=0;
       int end=pElement->pElementList->length();
       for(int i=0;i<end;i++)
       {
          const QApxDataElement *childElement = pElement->pElementList->at(i);
-         pElement->packLen+=childElement->packLen;
+         packLen+=childElement->packLen;
       }
+      pElement->packLen = packLen;
    }
    else
    {

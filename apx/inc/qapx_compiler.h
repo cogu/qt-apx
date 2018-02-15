@@ -1,7 +1,6 @@
 #ifndef QAPX_COMPILER_H
 #define QAPX_COMPILER_H
 
-#include <QVariant>
 #include <QStack>
 #include <QtGlobal>
 #include <QByteArray>

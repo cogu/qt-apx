@@ -3,36 +3,28 @@
 #include "qrmf_filemanager.h"
 #include "qrmf_proto.h"
 
-#define DEFAULT_PACK_BUF_LEN 1024
-
 namespace RemoteFile
 {
 
-FileManagerWorker::FileManagerWorker(): mTransmitHandler(NULL)
-{
-
-}
-
-void FileManagerWorker::onMessage(Msg msg)
+void FileManager::onMessage(const Msg& msg)
 {
    switch(msg.msgType)
    {
    case RMF_MSG_CONNECT:
       mTransmitHandler = (RemoteFile::TransmitHandler*) msg.msgData3;
       break;
-   case RMF_MSG_FILEINFO:      
+   case RMF_MSG_FILEINFO:
       {
-         RemoteFile::File *file = (RemoteFile::File*) msg.msgData3;
+         const RemoteFile::File* const file = (RemoteFile::File*) msg.msgData3;
          if( (mTransmitHandler != NULL) && (file != NULL) )
          {
-            int msgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + ((int)msg.msgData1);
+            const int msgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + ((int)msg.msgData1);
             char *sendBuffer = mTransmitHandler->getSendBuffer(msgLen);
             if (sendBuffer != NULL)
             {
-               char *p=sendBuffer;
-               int headerLen = RemoteFile::packHeader(p, msgLen,RMF_CMD_START_ADDR,false);
-               p+=headerLen;
-               int payloadLen = RemoteFile::packFileInfo(p, msgLen-headerLen, *file);
+               int headerLen = RemoteFile::packHeader(sendBuffer, msgLen,RMF_CMD_START_ADDR,false);
+               sendBuffer+=headerLen;
+               int payloadLen = RemoteFile::packFileInfo(sendBuffer, msgLen-headerLen, *file);
                Q_ASSERT(payloadLen>0);
                mTransmitHandler->send(0,headerLen+payloadLen);
             }
@@ -42,14 +34,13 @@ void FileManagerWorker::onMessage(Msg msg)
       break;
    case RMF_MSG_FILEOPEN:
       {
-         int maxMsgLen = (int) RMF_HIGH_ADDRESS_SIZE + RMF_FILE_OPEN_LEN;
+         const int maxMsgLen = (int) RMF_HIGH_ADDRESS_SIZE + RMF_FILE_OPEN_LEN;
          char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
          if (sendBuffer != NULL)
          {
-            char *p=sendBuffer;
-            int headerLen = RemoteFile::packHeader(p, maxMsgLen,RMF_CMD_START_ADDR,false);
-            p+=headerLen;
-            int payloadLen = RemoteFile::packFileOpen(p, maxMsgLen-headerLen,msg.msgData1);
+            const int headerLen = RemoteFile::packHeader(sendBuffer, maxMsgLen,RMF_CMD_START_ADDR,false);
+            sendBuffer+=headerLen;
+            const int payloadLen = RemoteFile::packFileOpen(sendBuffer, maxMsgLen-headerLen,msg.msgData1);
             Q_ASSERT(payloadLen>0);
             mTransmitHandler->send(0,headerLen+payloadLen);
          }
@@ -58,19 +49,24 @@ void FileManagerWorker::onMessage(Msg msg)
    case RMF_MSG_WRITE_DATA:
       {
          quint32 address = (quint32) msg.msgData1;
-         QByteArray *dataBytes = (QByteArray*) msg.msgData3;
+         const QByteArray* const dataBytes = (QByteArray*) msg.msgData3;
          if( (mTransmitHandler != NULL) && (dataBytes != NULL) )
          {
-            int maxMsgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + dataBytes->length();
+            const int payloadLen = dataBytes->length();
+            const int maxMsgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + payloadLen;
             char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
             if (sendBuffer != NULL)
             {
                char *p=sendBuffer;
                int headerLen = RemoteFile::packHeader(p, maxMsgLen,address,false);
                p+=headerLen;
-               memcpy(p, dataBytes->constData(), dataBytes->length());
+               memcpy(p, dataBytes->constData(), payloadLen);
                //note: headerLen can be shorter here than RMF_ADDR_LEN.
-               mTransmitHandler->send(0,headerLen+dataBytes->length());
+               const int result = mTransmitHandler->send(0,headerLen+payloadLen);
+               if (result<0)
+               {
+                  qWarning() << "[RMF_FILE_MANAGER] send error" << result;
+               }
             }
          }
          if (dataBytes !=NULL)
@@ -80,22 +76,21 @@ void FileManagerWorker::onMessage(Msg msg)
       }
       break;
    default:
-      qDebug() << "Unhandled message" << msg.msgType;
+      qDebug() << "[RMF_FILE_MANAGER] Unhandled message" << msg.msgType;
    }
 }
 
 FileManager::FileManager(FileMap2 *localFileMap, FileMap2 *remoteFileMap):
+   mTransmitHandler(NULL),
    mLocalFileMap(localFileMap),
-   mRemoteFileMap(remoteFileMap)
+   mRemoteFileMap(remoteFileMap),
+   mRequestedFiles()
 {
-   QObject::connect(this, &FileManager::message, &mWorkerThread, &FileManagerWorker::onMessage);
-   mWorkerThread.start();
+   QObject::connect(this, &FileManager::message, this, &FileManager::onMessage);
 }
 
 FileManager::~FileManager()
 {
-   mWorkerThread.quit();
-   mWorkerThread.wait();
 }
 
 void FileManager::attachLocalFile(File *file)
@@ -128,7 +123,7 @@ void FileManager::onConnected(TransmitHandler *transmitHandler)
 }
 
 void FileManager::onDisconnected()
-{   
+{
    mRemoteFileMap->clear();
 }
 
@@ -139,7 +134,7 @@ bool FileManager::onMsgReceived(const char *msgData, int msgLen)
    const char *pEnd = msgData+msgLen;
    quint32 address;
    bool more_bit;
-   int headerLen = RemoteFile::unpackHeader(pNext, pEnd, &address, &more_bit);
+   const int headerLen = RemoteFile::unpackHeader(pNext, pEnd, &address, &more_bit);
 
    if (headerLen > 0)
    {
@@ -170,7 +165,7 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
    quint32 cmdType;
    if(pBegin+sizeof(quint32)>pEnd)
    {
-      qDebug("[FILEMANAGER] processCmd: invalid message length:%d",(int) (pEnd-pBegin) );
+      qDebug("[RMF_FILE_MANAGER] processCmd: invalid message length:%d",(int) (pEnd-pBegin) );
       return;
    }
    cmdType = qFromLittleEndian<quint32>((uchar*)pBegin);
@@ -182,7 +177,7 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
          int result = RemoteFile::unpackFileInfo(pBegin, pEnd, *remoteFile);
          if (result <= 0)
          {
-            qDebug("[FILEMANAGER] unpackFileInfo failed with :%d",(int) result );
+            qDebug("[RMF_FILE_MANAGER] unpackFileInfo failed with :%d",(int) result );
             delete remoteFile;
          }
          else
@@ -190,16 +185,16 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
             int numRequesteFiles = mRequestedFiles.length();
             for (int i=0;i<numRequesteFiles;i++)
             {
-               if (mRequestedFiles[i]->mName == remoteFile->mName)
+               RemoteFile::File* requestedFile = mRequestedFiles[i];
+               if (requestedFile->mName == remoteFile->mName)
                {
-                  if (mRequestedFiles[i]->mLength != remoteFile->mLength)
+                  if (requestedFile->mLength != remoteFile->mLength)
                   {
                      qDebug("[FILEMANAGER] Requested file \"%s\" but length does not match. Expected %d, got %d",
-                            remoteFile->mName.toLatin1().constData(), mRequestedFiles[i]->mLength, remoteFile->mLength);
+                            remoteFile->mName.toLatin1().constData(), requestedFile->mLength, remoteFile->mLength);
                   }
                   else
                   {
-                     RemoteFile::File *requestedFile = mRequestedFiles[i];
                      requestedFile->mAddress=remoteFile->mAddress;
                      requestedFile->mFileType=remoteFile->mFileType;
                      requestedFile->mDigestType=remoteFile->mDigestType;
@@ -252,12 +247,24 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
 
 void FileManager::processFileWrite(quint32 address, bool more_bit, const char *data, quint32 dataLen)
 {
-   (void) more_bit;
+   Q_UNUSED(more_bit);
    RemoteFile::File *file = mRemoteFileMap->findByAddress(address);
    if ( (file != 0) && (file->isOpen == true) )
    {
       quint32 offset = address - file->mAddress;
-      file->write((const quint8*) data, offset, dataLen);
+      const int write_result = file->write((const quint8*) data, offset, dataLen);
+      if (write_result!=(int)dataLen)
+      {
+         qDebug("[RMF_FILE_MANAGER] Incomplete write for address @%08X, %d %u", address, write_result, dataLen);
+      }
+      else if (write_result == (int)file->mLength)
+      {
+         emit remoteFileFullWrite(file->mName);
+      }
+   }
+   else
+   {
+      qDebug("[RMF_FILE_MANAGER] Ignoring write for address not in opened file @%08X", address);
    }
 }
 

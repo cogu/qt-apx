@@ -84,7 +84,8 @@ bool FileMap2::assignFileAddress(RemoteFile::File *file, quint32 startAddress, q
       //insert after a
       if ( (startAddress & (startAddress-1))==0 && ((addressBoundary & (addressBoundary-1))==0) )
       {
-         quint32 prevEndAddress = mFiles[a]->mAddress+mFiles[a]->mLength;
+         const RemoteFile::File* const& currFile = mFiles.at(a);
+         quint32 prevEndAddress = currFile->mAddress+currFile->mLength;
          file->mAddress = (prevEndAddress + (addressBoundary-1)) & (~(addressBoundary-1));
       }
       else
@@ -100,7 +101,7 @@ bool FileMap2::assignFileAddress(RemoteFile::File *file, quint32 startAddress, q
    }
    if ( b != -1)
    {
-      endAddress=mFiles[b]->mAddress;
+      endAddress=mFiles.at(b)->mAddress;
    }
    return verifyFileAddress(file, startAddress, endAddress);
 }
@@ -125,7 +126,8 @@ File *FileMap2::findByAddress(quint32 address)
 {
    if (mLastFileIndex>=0)
    {
-      if ( (mFiles[mLastFileIndex]->mAddress<=address) && (address < mFiles[mLastFileIndex]->mAddress + mFiles[mLastFileIndex]->mLength ) )
+      const RemoteFile::File* const& lastFile = mFiles.at(mLastFileIndex);
+      if ( (lastFile->mAddress<=address) && (address < lastFile->mAddress + lastFile->mLength ) )
       {
          return mFiles[mLastFileIndex];
       }
@@ -136,7 +138,8 @@ File *FileMap2::findByAddress(quint32 address)
 
    for (i=0;i<numItems;i++)
    {
-      if ( (mFiles[i]->mAddress<=address) && (address < mFiles[i]->mAddress + mFiles[i]->mLength ) )
+      const RemoteFile::File* const& currFile = mFiles.at(i);
+      if ( (currFile->mAddress<=address) && (address < currFile->mAddress + currFile->mLength ) )
       {
          mLastFileIndex=i;
          return mFiles[i];

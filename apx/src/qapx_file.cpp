@@ -1,16 +1,20 @@
 #include <QtGlobal>
-#include <QDebug>
 #include <cstring>
 #include "qapx_file.h"
 #include "qapx_nodedata.h"
 
 using namespace std;
 
-Apx::File::File(QString name, quint32 length):RemoteFile::File(name,length),mNodeDataHandler(NULL)
+const QString Apx::File::cDefinitionSuffix = QStringLiteral(".apx");
+const QString Apx::File::cInSuffix = QStringLiteral(".in");
+const QString Apx::File::cOutSuffix = QStringLiteral(".out");
+
+Apx::File::File(QString name, quint32 length)
+    : RemoteFile::File(name,length)
+    , mData((int)length, '\0')
+    , mDataLock()
+    , mNodeDataHandler(NULL)
 {
-   mData.resize((int)length);
-   Q_ASSERT(mData.length() == (int)length);
-   memset(mData.data(),0, length);
 }
 
 Apx::File::~File()

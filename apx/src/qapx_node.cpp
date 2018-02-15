@@ -62,7 +62,7 @@ namespace Apx
       mPortMap.insert(QString(port->getName()),dynamic_cast<QApxSimplePort*>(port));
    }
 
-   QApxSimplePort *Node::getRequirePortById(int i)
+   QApxSimplePort *Node::getRequirePortById(int i) const
    {
       if (i< mRequirePorts.size())
       {
@@ -71,7 +71,7 @@ namespace Apx
       return (QApxSimplePort*) NULL;
    }
 
-   QApxSimplePort *Node::getProvidePortById(int i)
+   QApxSimplePort *Node::getProvidePortById(int i) const
    {
       if (i< mProvidePorts.size())
       {
@@ -80,7 +80,7 @@ namespace Apx
       return (QApxSimplePort*) NULL;
    }
 
-   QApxSimplePort *Node::findPortByName(const char *name)
+   QApxSimplePort *Node::findPortByName(const char *name) const
    {
       PortMapItertator it = mPortMap.find(QString(name));
       if (it != mPortMap.end())
@@ -95,7 +95,7 @@ namespace Apx
       mName=name;
    }
 
-   QString &Node::getName()
+   const QString &Node::getName() const
    {
       return mName;
    }

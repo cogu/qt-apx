@@ -41,7 +41,7 @@ void QApxIStreamBuf::parseBuffer()
 
 }
 
-void QApxIStreamBuf::write(QByteArray &chunk)
+void QApxIStreamBuf::write(const QByteArray &chunk)
 {
    const quint8 *pBegin;
    const quint8 *pEnd;
@@ -50,9 +50,9 @@ void QApxIStreamBuf::write(QByteArray &chunk)
 
    //qDebug() << "buffering" << chunk.length();
    m_buf.append(chunk);
-   pBegin = (quint8*) m_buf.data();
-   pEnd = pBegin +  m_buf.length();
-   pNext = (quint8*) pBegin;
+   pBegin = (const quint8*) m_buf.constData();
+   pEnd = pBegin + m_buf.length();
+   pNext = pBegin;
    pResult = 0;
 
 
@@ -618,7 +618,7 @@ QApxOStreamBuf::~QApxOStreamBuf()
 void QApxOStreamBuf::apxStartTextMsg()
 {
    mBuf.clear();
-   mBuf.append("APX/");
+   mBuf.append(QStringLiteral("APX/"));
    mBuf.append(QByteArray::number(mMajorVersion));
    mBuf.append('.');
    mBuf.append(QByteArray::number(mMinorVersion));
@@ -632,16 +632,16 @@ void QApxOStreamBuf::apxEndTextMsg()
 
 void QApxOStreamBuf::apxNodeNameRqst()
 {
-   mBuf.append("?N*\n");
+   mBuf.append(QStringLiteral("?N*\n"));
 }
 
 int QApxOStreamBuf::apxNodeNameRsp(const QByteArray &name)
 {
    if(name.length()>0)
    {
-      mBuf.append("+N\"");
+      mBuf.append(QStringLiteral("+N\""));
       mBuf.append(name);
-      mBuf.append("\"\n");
+      mBuf.append(QStringLiteral("\"\n"));
       return 0;
    }
    return -1;
@@ -651,9 +651,9 @@ int QApxOStreamBuf::apxNodeQueryRqst(const QByteArray &name)
 {
    if(name.length()>0)
    {
-      mBuf.append("?N\"");
+      mBuf.append(QStringLiteral("?N\""));
       mBuf.append(name);
-      mBuf.append("\"\n");
+      mBuf.append(QStringLiteral("\"\n"));
       return 0;
    }
    return -1;
@@ -702,7 +702,7 @@ void QApxOStreamBuf::apxRequirePortConnect(quint16 portId, quint32 dataLen)
    {
       //we need 4 bytes
       data.resize(4);
-      qToBigEndian<quint32>((quint32)dataLen,(uchar*) data.data());
+      qToBigEndian<quint32>(dataLen,(uchar*) data.data());
    }
    apxDataMsg(APX_MSG_RPORT_CONNECT,portId,data);
 }
@@ -732,7 +732,7 @@ void QApxOStreamBuf::apxProvidePortConnect(quint16 portId, quint32 dataLen)
    {
       //we need 4 bytes
       data.resize(4);
-      qToBigEndian<quint32>((quint16)dataLen,(uchar*) data.data());
+      qToBigEndian<quint32>(dataLen,(uchar*) data.data());
    }
    apxDataMsg(APX_MSG_PPORT_CONNECT,portId,data);
 }
@@ -824,13 +824,9 @@ int QApxOStreamBuf::apxDeclarationLine(const char firstChar,const QByteArray &na
 
 void QApxOStreamBuf::apxDataMsg(quint8 msgType, quint16 portId, const QByteArray &msgData)
 {
-   QByteArray portBuf;
-   QByteArray lValBuf;
-   portBuf.resize(sizeof(portId));
-   qToBigEndian<quint16>(portId,(uchar*) portBuf.data());
    quint8 headerByte = (APX_BINARY_FLAG | (msgType & APX_MSG_MASK));
    int dataLen = sizeof(portId) + msgData.length();
-   if (dataLen >= 0)
+   if (dataLen >= 0) // TODO always true
    {
       quint8 lengthValType;
       if(dataLen<5)
@@ -851,30 +847,32 @@ void QApxOStreamBuf::apxDataMsg(quint8 msgType, quint16 portId, const QByteArray
       }
       headerByte|= (quint8) ((lengthValType&APX_LEN_MASK)<<APX_LEN_STARTBIT);
       mBuf.append(headerByte);
+      const int preLenTypeSize = mBuf.size();
+      int tmpSize = preLenTypeSize;
       //Right after headerByte, inser length bytes (if applicable)
       switch(lengthValType)
       {
       case APX_LEN_BYTE:
-         lValBuf.resize(1);
-         qToBigEndian<quint8>((quint8)dataLen,(uchar*) lValBuf.data());
+         tmpSize += 1;
+         mBuf.resize(tmpSize);
+         qToBigEndian<quint8>((quint8)dataLen, &(mBuf.data())[preLenTypeSize]);
          break;
       case APX_LEN_SHORT:
-         lValBuf.resize(2);
-         qToBigEndian<quint16>((quint16)dataLen,(uchar*) lValBuf.data());
+         tmpSize += 2;
+         mBuf.resize(tmpSize);
+         qToBigEndian<quint16>((quint16)dataLen, &(mBuf.data())[preLenTypeSize]);
          break;
       case APX_LEN_LONG:
-         lValBuf.resize(4);
-         qToBigEndian<quint32>((quint32)dataLen,(uchar*) lValBuf.data());
+         tmpSize += 4;
+         mBuf.resize(tmpSize);
+         qToBigEndian<quint32>((quint32)dataLen, &(mBuf.data())[preLenTypeSize]);
          break;
       default:
          //Not applicable
          break;
       }
-      if (lValBuf.length() > 0)
-      {
-         mBuf.append(lValBuf);
-      }
-      mBuf.append(portBuf);
+      mBuf.resize(tmpSize+sizeof(portId));
+      qToBigEndian<quint16>(portId, &(mBuf.data())[tmpSize]);
       if (msgData.length() > 0)
       {
          mBuf.append(msgData);

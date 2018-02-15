@@ -10,7 +10,8 @@ SimulatorNode::SimulatorNode(Apx::Client *client, QObject *parent) : QObject(par
 
 }
 
-void SimulatorNode::onRequirePortData(int portId, QString &portName, QVariant &value)
+void SimulatorNode::onRequirePortData(int portId, const QString &portName, const QVariant &value)
+{
 {
    (void) portId;
    if (portName == "TestSignal1")

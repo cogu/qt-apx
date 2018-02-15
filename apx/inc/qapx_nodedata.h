@@ -30,9 +30,9 @@ namespace Apx
 
    struct PackUnpackProg
    {
-      VariantType vtype; //what QVariant it expects
-      QByteArray  prog; //byte code program
-      PackUnpackProg(QApxDataElement *pElement, QByteArray _prog);
+      VariantType vtype;  //what QVariant it expects
+      QByteArray  prog;   //byte code program
+      PackUnpackProg(QApxDataElement *pElement, const QByteArray& _prog);
    };
 
    /**
@@ -51,7 +51,7 @@ namespace Apx
    class NodeHandler
    {
    public:
-      virtual void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value) = 0;
+      virtual void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, const QVariant &value) = 0;
    };
 
 
@@ -79,8 +79,8 @@ namespace Apx
       //NodeData API
       Apx::Node* load(const char *apxText);
       Apx::Node* load(QString &apxText);
-      int findProvidePortId(const char *name) const;
-      int findRequirePortId(const char *name) const;
+      int findProvidePortId(const char* const name) const;
+      int findRequirePortId(const char* const name) const;
       bool setProvidePortValue(int portId, QVariant &value);
       bool getRequirePortValue(const QApxSimplePort *port, QVariant &value);
       bool getRequirePortValue(int portIndex, QVariant &value);
@@ -106,7 +106,7 @@ namespace Apx
       void cleanup();
       void populatePortDataMap();
       void writeProvidePortRaw(int portId,const char *pSrc, int length);
-#ifdef UNIT_TEST
+#ifdef APX_UNIT_TEST
    public:
 #else
    protected:

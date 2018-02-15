@@ -1,8 +1,5 @@
 #include "qapx_compiler.h"
-#include <QDebug>
 #include <limits>
-
-#include <QVariant>
 
 #define MAX_PACK_LEN 16777215 //should be equal to 2^24-1
 
@@ -60,7 +57,7 @@ int DataCompiler::genUnpackData(QByteArray &prog, const QApxDataElement *pElemen
          int end = pElement->pElementList->length();
          for (int i=0;i<end;i++)
          {
-            const QApxDataElement *pChildElement = const_cast<QApxDataElement*>(pElement->pElementList->value(i));
+            const QApxDataElement* const& pChildElement = pElement->pElementList->at(i);
             Q_ASSERT(pChildElement != 0);
             recordSelect(prog,pChildElement->name.constData());
             if (pChildElement->baseType == QAPX_BASE_TYPE_RECORD)
@@ -145,7 +142,7 @@ int DataCompiler::genPackData(QByteArray &prog, const QApxDataElement *pElement,
          int end = pElement->pElementList->length();
          for (int i=0;i<end;i++)
          {
-            const QApxDataElement *pChildElement = const_cast<QApxDataElement*>(pElement->pElementList->value(i));
+            const QApxDataElement* const& pChildElement = pElement->pElementList->at(i);
             Q_ASSERT(pChildElement != 0);
             recordSelect(prog,pChildElement->name.constData());
             if (pChildElement->baseType == QAPX_BASE_TYPE_RECORD)

@@ -1,8 +1,8 @@
 /**
   QT adaptation of RemoteFile Layer
 */
-#ifndef QRMF_FILEMAP_H
-#define QRMF_FILEMAP_H
+#ifndef QRMF_FILEMAP2_H
+#define QRMF_FILEMAP2_H
 #include <QString>
 #include <QtGlobal>
 #include <QList>
@@ -51,8 +51,4 @@ protected:
 
 
 }
-#endif // QRMF_FILEMAP_H
-#ifndef QRMF_FILEMAP2_H
-#define QRMF_FILEMAP2_H
-
 #endif // QRMF_FILEMAP2_H

@@ -53,32 +53,30 @@ int encode16(char *pDest, int destLimit, quint16 value)
  * @param value
  * @return number of bytes read from pBegin. Valid values are 0, 1 and 2. -1 is returned when arguments are invalid (e.g. if value is NULL or pEnd<pBegin)
  */
-int decode16(const char *pBegin, const char *pEnd, quint16 *value)
+int decode16(const char* const pBegin, const char* const pEnd, quint16 *value)
 {
    int retval = 0; //default is to read 0 bytes starting from pBegin
-   const char *pNext=pBegin;
    if( (pBegin != 0) && (pBegin<pEnd) && (value != NULL) )
    {
-      char c = *pNext++;
+      const uchar c = *(const uchar* const)pBegin;
       if(c & 0x80u) //is long_bit set?
       {
-         if(pNext<pEnd)
+         if(pBegin+sizeof(quint16)<=pEnd)
          {
             retval = (int) sizeof(quint16);
-            quint16 tmp = qFromBigEndian<quint16>((const uchar*) pBegin);
+            quint16 tmp = qFromBigEndian<quint16>(pBegin);
             tmp&=(quint16)0x7FFFu; //clear the long bit
             if(tmp<128u)
             {
                tmp+=32768u; //interpret range 0-127 as range 32768-32895 when long_bit was set to 1
             }
             *value=tmp;
-            pNext++;
          }
       }
       else
       {
          retval = (int) sizeof(quint8);
-         *value=(quint8) c;
+         *value=(const quint8) c;
       }
    }
    else
@@ -118,28 +116,26 @@ int encode32(char *pDest, int destLimit, quint32 value)
    return retval;
 }
 
-int decode32(const char *pBegin, const char *pEnd, quint32 *value)
+int decode32(const char* const pBegin, const char* const pEnd, quint32 *value)
 {
    int retval = 0; //default is to read 0 bytes starting from pBegin
-   const char *pNext=pBegin;
    if( (pBegin != 0) && (pBegin<pEnd) && (value != NULL) )
    {
-      char c = *pNext++;
+      const uchar c = *(const uchar* const)pBegin;
       if(c & 0x80u) //is long_bit set?
       {
-         if(pNext+2<pEnd)
+         if(pBegin+sizeof(quint32)<=pEnd)
          {
             retval = (int) sizeof(quint32);
-            quint32 tmp = qFromBigEndian<quint32>((const uchar*) pBegin);
+            quint32 tmp = qFromBigEndian<quint32>(pBegin);
             tmp&=(quint32)0x7FFFFFFFu; //clear the long bit
             *value=tmp;
-            pNext++;
          }
       }
       else
       {
          retval = (int) sizeof(quint8);
-         *value=(quint8) c;
+         *value=(const quint8) c;
       }
    }
    else

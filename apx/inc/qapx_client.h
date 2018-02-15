@@ -18,28 +18,29 @@ namespace Apx
    {
       Q_OBJECT
    public:
-      Client(QObject *parent=NULL);
+      Client(QObject *parent=NULL, bool inPortNotifyWithName=true);
       virtual ~Client();
 
       void createLocalNode(const char *apxText);
-      void createLocalNode(QString &apxText);
-      void connectTcp(QHostAddress address,quint16 port);
+      void createLocalNode(const QString &apxText);
+      void connectTcp(const QHostAddress& address,quint16 port);
       void close();
 
       //NodeHandler API
-      void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, QVariant &value);
+      void inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, const QVariant &value);
 
       //client user API
       Q_DECL_DEPRECATED void setProvidePort(int portId, QVariant &value);
       void setProvidePortValue(int portId, QVariant &value);
-      int findProvidePortId(QString &name);
-      int findProvidePortId(const char *name);
-      int findRequirePortId(QString &name);
-      int findRequirePortId(const char *name);
+      int findProvidePortId(const QString &name) const;
+      int findProvidePortId(const char* const name) const;
+      int findRequirePortId(const QString &name) const;
+      int findRequirePortId(const char* const name) const;
 
       Apx::NodeData *getNodeData() {return &mNodeData;}
 
    protected:
+      bool mInPortNotifyWithName;
       NodeData mNodeData;
       Apx::FileMap mLocalFileMap;
       Apx::FileMap mRemoteFileMap;
@@ -51,11 +52,15 @@ namespace Apx
 private slots:
       void onConnected();
       void onDisconnected();
+      void onRemoteFileFullWrite(const QString& fileName);
 
   signals:
-      void requirePortData(int portId, QString &portName, QVariant &value);
+      void requirePortData(int portId, const QString &portName, const QVariant &value);
+      void requirePortDataIdOnly(int portId, const QVariant &value);
       void connected();
       void disconnected();
+      // Emitted when all ports have been updated in one message
+      void requirePortsFullyRefreshed();
    };
 }
 

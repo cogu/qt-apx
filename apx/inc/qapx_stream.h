@@ -78,11 +78,11 @@ public:
    void setInputHandler(QApxIStreamEventHandler *handler){mEventHandler = handler;}
    void open();
    void close();
-   bool isOpen(){return mIsOpen;}
-   int getLastMsgType(){return mLastMsgType;}
+   bool isOpen() const {return mIsOpen;}
+   int getLastMsgType() const {return mLastMsgType;}
    void parseBuffer();
-   void write(QByteArray &chunk);
-   int getException(){return mException;}
+   void write(const QByteArray &chunk);
+   int getException() const {return mException;}
 
 protected:
    void reset();

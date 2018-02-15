@@ -7,11 +7,11 @@
  */
 bool Apx::FileMap::assignFileAddressDefault(RemoteFile::File *file)
 {
-   if (file->mName.endsWith(".in") || file->mName.endsWith(".out") )
+   if (file->mName.endsWith(Apx::File::cInSuffix) || file->mName.endsWith(Apx::File::cOutSuffix) )
    {
       return assignFileAddress(file, PORT_DATA_START, DEFINITION_START, PORT_DATA_BOUNDARY);
    }
-   else if (file->mName.endsWith(".apx") )
+   else if (file->mName.endsWith(Apx::File::cDefinitionSuffix) )
    {
       return assignFileAddress(file, DEFINITION_START, USER_DATA_START, DEFINITION_BOUNDARY);
    }
