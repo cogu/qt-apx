@@ -78,6 +78,7 @@ protected:
    QTimer mReconnectTimer;
    RemoteFile::ReceiveHandler *mReceiveHandler;
    bool m_isAcknowledgeSeen;
+   bool m_isServerConnectedOnce;
    char *mSendBufPtr;
    quint32 mErrorCode;
    QAbstractSocket::SocketError mLastSocketError;
