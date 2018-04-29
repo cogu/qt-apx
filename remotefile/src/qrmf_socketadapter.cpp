@@ -18,7 +18,8 @@ namespace RemoteFile
 
 SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
    QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),mTcpSocket(NULL),
-   mLocalSocket(NULL),mReconnectTimer(parent), mReceiveHandler(NULL),m_isAcknowledgeSeen(false),
+   mLocalSocket(NULL),mReconnectTimer(parent), mReceiveHandler(NULL),
+   m_isAcknowledgeSeen(false),m_isServerConnectedOnce(false),
    mSendBufPtr(NULL),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
 {
    if (numHeaderBits==16)
@@ -245,6 +246,7 @@ void SocketAdapter::onConnected()
 {
    mErrorCode = RMF_ERR_NONE;
    m_isAcknowledgeSeen=false;
+   m_isServerConnectedOnce=true;
    sendGreetingHeader();
 #ifdef RMF_SOCKET_VERBOSE
    qDebug()<<"[RMF_SOCKET_ADAPTER] onConnected";
@@ -558,7 +560,15 @@ void SocketAdapter::setError(quint32 error, qint64 errorExtra)
       break;
    case RMF_ERR_SOCKET_EVENT:
       mLastSocketError = (QAbstractSocket::SocketError) errorExtra;
-      qCritical() << "[RMF_SOCKET_ADAPTER] Error event from socket: " << ((int) mLastSocketError);
+#ifndef RMF_SOCKET_VERBOSE
+      // Avoid printing timeout error if there is no server at initial connect
+      if (m_isServerConnectedOnce || mLastSocketError != QAbstractSocket::SocketTimeoutError)
+      {
+         qCritical() << "[RMF_SOCKET_ADAPTER] Error event from socket:" << ((int) mLastSocketError);
+      }
+#else
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error event from socket:" << ((int) mLastSocketError);
+#endif
       break;
    case RMF_ERR_INVALID_PARSE:
       qCritical() << "[RMF_SOCKET_ADAPTER] Error: Parsed beyond buffer size";
@@ -567,7 +577,7 @@ void SocketAdapter::setError(quint32 error, qint64 errorExtra)
       qCritical() << "[RMF_SOCKET_ADAPTER] Error: Bad message";
       break;
    case RMF_ERR_BAD_ALLOC:
-      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Unable to allocate memory for buffer " << (int) errorExtra;
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Unable to allocate memory for buffer" << (int) errorExtra;
       break;
    }
 }
