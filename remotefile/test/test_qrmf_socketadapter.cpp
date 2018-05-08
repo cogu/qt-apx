@@ -175,6 +175,58 @@ void TestSocketAdapter::test_bad_message()
    QCOMPARE(sockAdapter.getError(), RMF_ERR_NONE);
    sockAdapter.onReadyread();
    QCOMPARE(sockAdapter.getError(), RMF_ERR_BAD_MSG);
+   QCOMPARE(receiveHandler.messages.length(), 1);
 }
+
+void TestSocketAdapter::test_multiple_bad_messages()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   socket.receive(acknowledge_msg, ACK_MSG_LEN);
+   sockAdapter.onReadyread();
+   QCOMPARE(receiveHandler.messages.length(), 0);
+   const char *msg1="\04abcd";
+   socket.receive(msg1, (int) strlen(msg1));
+   receiveHandler.setParseResult(false);
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_NONE);
+   char *msg = new char[strlen(msg1)+strlen(msg1)+7];
+   memcpy(msg, msg1, (int) strlen(msg1));
+   memcpy(&msg[strlen(msg1)], msg1, (int) strlen(msg1));
+   memcpy(&msg[strlen(msg1)*2], "\x04\x05\x06\x07\x08\x09\x0A", 7);
+   socket.receive(msg, (int) strlen(msg1)+strlen(msg1)+7);
+   sockAdapter.onReadyread();
+   // Ensure parsing stops after first bad message
+   QCOMPARE(receiveHandler.messages.length(), 1);
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_BAD_MSG);
+   delete [] msg;
+}
+
+void TestSocketAdapter::test_long_message()
+{
+   MockReceiveHandler receiveHandler;
+   SocketAdapter sockAdapter;
+   sockAdapter.setReceiveHandler(&receiveHandler);
+   sockAdapter.onConnected();
+   MockSocket socket;
+   QCOMPARE(sockAdapter.connectMock(&socket), 0);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   socket.receive(acknowledge_msg, ACK_MSG_LEN);
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_NONE);
+   QCOMPARE(receiveHandler.messages.length(), 0);
+   const uint32_t long_msg_len = 2*1024*1024;
+   char *msg = new char[long_msg_len+HEADER_LEN_LONG];
+   QCOMPARE(NumHeader::encode32(&msg[0], (int) HEADER_LEN_LONG, long_msg_len), (int) HEADER_LEN_LONG);
+   socket.receive(msg, HEADER_LEN_LONG);
+   sockAdapter.onReadyread();
+   QCOMPARE(sockAdapter.getError(), RMF_ERR_MSG_LEN_TOO_LONG);
+
+   delete [] msg;
+}
+
 
 }

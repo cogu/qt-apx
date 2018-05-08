@@ -9,9 +9,30 @@
 #include "qnumheader.h"
 #include "qscan.h"
 
-#define RMF_SOCKET_BUFFER_SIZE_LIMIT 32 * 1024
+/** Options that are used to tune behaviour via defines **/
+// Define used to tune memory use and trigger re-connection if seeing corrupted data
+#ifndef RMF_MAX_EXPECTED_MESSAGE_LENGTH
+#define RMF_MAX_EXPECTED_MESSAGE_LENGTH 1024 * 1024
+#endif
+
+// Define used to limit memory behaviour
+#ifndef RMF_SOCKET_BUFFER_SIZE_LIMIT
+#   if RMF_MAX_EXPECTED_MESSAGE_LENGTH >= (64 * 1024)
+#      define RMF_SOCKET_BUFFER_SIZE_LIMIT (RMF_MAX_EXPECTED_MESSAGE_LENGTH / 2)
+#   else
+#      define RMF_SOCKET_BUFFER_SIZE_LIMIT 32 * 1024
+#   endif
+#endif
+
+
+/** Options for adding extra verbosity via defines **/
 // Define to get qDebug socket status
 //#define RMF_SOCKET_VERBOSE
+
+// Define to get additional debug info on large massages that trigger re-connection
+//#define RMF_SOCKET_MESSAGE_LENGTH_DEBUG
+
+#define RMF_SOCKET_MESSAGE_LENGTH_DEBUG_DUMP_BYTES 24
 
 namespace RemoteFile
 {
@@ -22,6 +43,12 @@ SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
    m_isAcknowledgeSeen(false),m_isServerConnectedOnce(false),
    mSendBufPtr(NULL),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
 {
+#ifdef RMF_SOCKET_MESSAGE_LENGTH_DEBUG
+   qDebug() << "[RMF_SOCKET_ADAPTER] Constructed with RMF_SOCKET_MESSAGE_LENGTH_DEBUG active";
+#endif
+#ifdef RMF_SOCKET_VERBOSE
+   qDebug() << "[RMF_SOCKET_ADAPTER] Constructed with RMF_SOCKET_VERBOSE active";
+#endif
    if (numHeaderBits==16)
    {
       mNumHeaderBits=16;
@@ -84,6 +111,7 @@ int SocketAdapter::connectTcp(const QHostAddress& address, quint16 port)
       mTcpPort = port;
       mSocketType = RMF_SOCKET_TYPE_TCP;
       mTcpSocket = new QTcpSocket(this);
+      mTcpSocket->setReadBufferSize(RMF_SOCKET_BUFFER_SIZE_LIMIT);
       mLastSocketError=QAbstractSocket::UnknownSocketError;
       QObject::connect(mTcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(onTcpSocketError(QAbstractSocket::SocketError)));
       QObject::connect(mTcpSocket, SIGNAL(connected(void)),this, SLOT(onConnected(void)));
@@ -502,7 +530,19 @@ const char *SocketAdapter::parseRemoteFileData(const char* pBegin, const char* c
          quint32 remain =(quint32) (pEnd-pNext);
          Q_ASSERT(headerLen>0);
          Q_ASSERT(msgLen>0);
-         if(remain>=(quint32)msgLen)
+         if(msgLen>RMF_MAX_EXPECTED_MESSAGE_LENGTH)
+         {
+#ifdef RMF_SOCKET_MESSAGE_LENGTH_DEBUG
+            QByteArray debugData(pBegin,
+                                 (remain+headerLen) > RMF_SOCKET_MESSAGE_LENGTH_DEBUG_DUMP_BYTES ?
+                                     RMF_SOCKET_MESSAGE_LENGTH_DEBUG_DUMP_BYTES : (remain+headerLen));
+            // Rather ugly debug mixing ASCII and \xHEX, but possible to interpret should it be needed
+            qDebug() << "[RMF_SOCKET_ADAPTER] Unexpected message length in raw data" << debugData;
+#endif
+            setError(RMF_ERR_MSG_LEN_TOO_LONG, msgLen);
+            break;
+         }
+         else if(remain>=(quint32)msgLen)
          {
             if (m_isAcknowledgeSeen == false)
             {
@@ -532,6 +572,7 @@ const char *SocketAdapter::parseRemoteFileData(const char* pBegin, const char* c
                   if (result == false)
                   {
                      setError(RMF_ERR_BAD_MSG);
+                     break;
                   }
                }
             }
@@ -578,6 +619,12 @@ void SocketAdapter::setError(quint32 error, qint64 errorExtra)
       break;
    case RMF_ERR_BAD_ALLOC:
       qCritical() << "[RMF_SOCKET_ADAPTER] Error: Unable to allocate memory for buffer" << (int) errorExtra;
+      break;
+   case RMF_ERR_MSG_LEN_TOO_LONG:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Bad message length - check RMF_MAX_EXPECTED_MESSAGE_LENGTH" << errorExtra;
+      break;
+   default:
+      qCritical() << "[RMF_SOCKET_ADAPTER] Error: Other" << error;
       break;
    }
 }
