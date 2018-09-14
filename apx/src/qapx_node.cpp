@@ -41,7 +41,7 @@ namespace Apx
       mDataTypes.append(dataType);
    }
 
-   QApxDataType *Node::getTypeById(int i)
+   QApxDataType *Node::getTypeById(int i) const
    {
       if (i<mDataTypes.size())
       {

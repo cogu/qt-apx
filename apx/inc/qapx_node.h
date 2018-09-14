@@ -15,7 +15,7 @@ namespace Apx
       Node();
       ~Node();
       void appendType(QApxDataType *dataType);
-      QApxDataType *getTypeById(int i);
+      QApxDataType *getTypeById(int i) const;
       void appendRequirePort(QApxSimpleRequirePort *port);
       void appendProvidePort(QApxSimpleProvidePort *port);
       QApxSimplePort *getRequirePortById(int i) const;
