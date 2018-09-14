@@ -306,7 +306,6 @@ const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const q
 {
    const quint8 *pNext = (quint8*) pBegin;
    const quint8 *pResult = 0;
-   int len;
    if (pNext < pEnd)
    {
       data->lineType = *pNext++;
@@ -318,7 +317,7 @@ const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const q
             pResult = qscan_matchPair(pNext,pEnd,'"','"','\\');
             if (pResult > pNext)
             {
-               len = (int) (pResult-pNext-2); //compensate for the two '"' characters
+               int len = (int) (pResult-pNext-2); //compensate for the two '"' characters
                data->name.clear();
                data->name.insert(0,(const char*) (pNext+1),len); //do not include the first '"" character in string
                pNext = pResult;

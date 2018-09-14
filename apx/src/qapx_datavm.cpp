@@ -1050,7 +1050,6 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
    }
    else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
    {
-      int exception;
       //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       QVariantList list;
       list.reserve(arrayLen);
@@ -1059,7 +1058,7 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
       mState=state;
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
-         exception = unpackUnsigned<T>();
+         int exception = unpackUnsigned<T>();
          if(exception != VM_EXCEPTION_NO_EXCEPTION)
          {
             return exception;
@@ -1098,7 +1097,6 @@ template<typename T> int DataVM::unpackSignedArray(int arrayLen)
    }
    else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
    {
-      int exception;
       //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       QVariantList list;
       list.reserve(arrayLen);
@@ -1107,7 +1105,7 @@ template<typename T> int DataVM::unpackSignedArray(int arrayLen)
       mState=state;
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
-         exception = unpackSigned<T>();
+         int exception = unpackSigned<T>();
          if(exception != VM_EXCEPTION_NO_EXCEPTION)
          {
             return exception;
