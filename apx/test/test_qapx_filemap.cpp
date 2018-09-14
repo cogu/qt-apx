@@ -109,6 +109,6 @@ void TestApxFileMap::test_findByAddress()
    file = map.findByAddress(0);
    QVERIFY(file == &f1);
    file = map.findByAddress(10000);
-   QVERIFY(file == NULL);
+   QVERIFY(file == nullptr);
 
 }

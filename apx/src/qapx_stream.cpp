@@ -363,14 +363,14 @@ const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const q
          }
       }
    }
-   return 0; //parse failure
+   return nullptr; //parse failure
 }
 
 
 const quint8 *QApxIStreamBuf::parseApxHeaderLine(const quint8 *pBegin, const quint8 *pEnd, ApxHeaderLine *data)
 {
    const quint8 *pNext = pBegin;
-   const quint8 *pResult = 0;
+   const quint8 *pResult = nullptr;
    const char *str = "APX/";
    int len = strlen(str);
    pResult = qscan_matchStr(pNext,pEnd,(const quint8*) str,((const quint8*) str)+len);
@@ -399,35 +399,35 @@ const quint8 *QApxIStreamBuf::parseApxHeaderLine(const quint8 *pBegin, const qui
          }
       }
    }
-   return 0;
+   return nullptr;
 }
 
 void QApxIStreamBuf::parseDeclaration(ApxDeclarationLine *decl)
 {
-   if (decl != 0)
+   if (decl != nullptr)
    {
       switch(decl->lineType)
       {
       case 'N':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_nodeQueryRspStart(decl->name,decl->dsg);
          }
          break;
       case 'T':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_typedef(decl->name,decl->dsg,decl->attr);
          }
          break;
       case 'P':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_provide(decl->name,decl->dsg,decl->attr);
          }
          break;
       case 'R':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_require(decl->name,decl->dsg,decl->attr);
          }
@@ -565,7 +565,7 @@ const quint8 *QApxIStreamBuf::parseDataMsg(const quint8 *pBegin, const quint8 *p
       else
       {
          //just a header with no data bytes?
-         return 0; //mark parse failure
+         return nullptr; //mark parse failure
       }
    }
    return pNext;

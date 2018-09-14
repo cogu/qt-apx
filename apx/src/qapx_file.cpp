@@ -13,7 +13,7 @@ Apx::File::File(QString name, quint32 length)
     : RemoteFile::File(name,length)
     , mData((int)length, '\0')
     , mDataLock()
-    , mNodeDataHandler(NULL)
+    , mNodeDataHandler(nullptr)
 {
 }
 
@@ -57,7 +57,7 @@ Apx::InputFile::InputFile(QString name, quint32 length, NodeDataHandler *handler
 int Apx::InputFile::write(const quint8 *pSrc, quint32 offset, quint32 length)
 {
    int result = Apx::File::write(pSrc, offset, length);
-   if ( (result>0) && (mNodeDataHandler != NULL))
+   if ( (result>0) && (mNodeDataHandler != nullptr))
    {
       QByteArray data((const char*)pSrc,(int) length);
       mNodeDataHandler->inPortDataWriteNotify(offset,data);
@@ -78,7 +78,7 @@ Apx::OutputFile::~OutputFile()
 int Apx::OutputFile::write(const quint8 *pSrc, quint32 offset, quint32 length)
 {
    int result = Apx::File::write(pSrc, offset, length);
-   if ( (result > 0) && (mFileManager != NULL))
+   if ( (result > 0) && (mFileManager != nullptr))
    {
       mFileManager->outPortDataWriteNotify(this,pSrc, offset,length);
    }

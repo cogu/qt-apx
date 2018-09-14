@@ -43,7 +43,7 @@ namespace Apx
    class InputFile : public Apx::File
    {
    public:
-      InputFile(QString name, quint32 length, NodeDataHandler *handler = NULL);
+      InputFile(QString name, quint32 length, NodeDataHandler *handler = nullptr);
       virtual ~InputFile(){}
       void setNodeDataHandler(NodeDataHandler *handler) {mNodeDataHandler = handler;}
       NodeDataHandler *getNodeDataHandler() {return mNodeDataHandler;}

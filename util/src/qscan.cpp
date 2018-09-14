@@ -6,11 +6,11 @@
  * @param pBegin lower bound
  * @param pEnd upper bound
  * @param val
- * @return NULL on failure (value not found). pBegin in case pBegin==pEnd. Otherwise it returns a pointer between pBegin and pEnd where val was found
+ * @return nullptr on failure (value not found). pBegin in case pBegin==pEnd. Otherwise it returns a pointer between pBegin and pEnd where val was found
  */
 const quint8 *qscan_searchUntil(const quint8 *pBegin, const quint8 *pEnd, quint8 val){
     const quint8 *pNext = pBegin;
-    if ( (pBegin != 0) && (pEnd != 0) && (pEnd>=pBegin) )
+    if ( (pBegin != nullptr) && (pEnd != nullptr) && (pEnd>=pBegin) )
     {
        if (pBegin==pEnd)
        {
@@ -24,7 +24,7 @@ const quint8 *qscan_searchUntil(const quint8 *pBegin, const quint8 *pEnd, quint8
           pNext++;
        }
     }
-    return NULL; //invalid arguments or value not found
+    return nullptr; //invalid arguments or value not found
 }
 
 const quint8 *qscan_matchPair(const quint8 *pBegin, const quint8 *pEnd, const quint8 left, const quint8 right, const quint8 escapeChar){
@@ -60,7 +60,7 @@ const quint8 *qscan_matchPair(const quint8 *pBegin, const quint8 *pEnd, const qu
            }
         }
      }
-     return 0;
+     return nullptr;
 }
 
 /**

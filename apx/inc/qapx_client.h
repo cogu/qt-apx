@@ -18,7 +18,7 @@ namespace Apx
    {
       Q_OBJECT
    public:
-      Client(QObject *parent=NULL, bool inPortNotifyWithName=true);
+      Client(QObject *parent=nullptr, bool inPortNotifyWithName=true);
       virtual ~Client();
 
       void createLocalNode(const char *apxText);

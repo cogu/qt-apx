@@ -30,7 +30,7 @@ public:
       {
          return mSendBuffer.data();
       }
-      return NULL;
+      return nullptr;
    }
 
    int send(int offset, int msgLen);

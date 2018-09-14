@@ -14,7 +14,7 @@ namespace RemoteFile
    {
       Q_OBJECT
    public:
-      FileManager(RemoteFile::FileMap2 *localFileMap=NULL, RemoteFile::FileMap2 *remoteFileMap=NULL);
+      FileManager(RemoteFile::FileMap2 *localFileMap=nullptr, RemoteFile::FileMap2 *remoteFileMap=nullptr);
       ~FileManager();
       void attachLocalFile(RemoteFile::File *file);
       void requestRemoteFile(RemoteFile::File *file);

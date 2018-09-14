@@ -7,7 +7,7 @@ namespace Apx
 Client::Client(QObject *parent, bool inPortNotifyWithName)
   : QObject(parent)
   , mInPortNotifyWithName(inPortNotifyWithName)
-  , mSocketAdapter(NULL)
+  , mSocketAdapter(nullptr)
 {
    mFileManager = new RemoteFile::FileManager(&mLocalFileMap, &mRemoteFileMap);
 }
@@ -15,7 +15,7 @@ Client::Client(QObject *parent, bool inPortNotifyWithName)
 Client::~Client()
 {
    delete mFileManager;
-   if (mSocketAdapter != NULL)
+   if (mSocketAdapter != nullptr)
    {
       delete mSocketAdapter;
    }
@@ -27,15 +27,15 @@ void Client::createLocalNode(const char *apxText)
    InputFile *inPortDataFile = mNodeData.getInPortDataFile();
    OutputFile *outPortDataFile = mNodeData.getOutPortDataFile();
    OutputFile *definitionDataFile = mNodeData.getDefinitionFile();
-   if (outPortDataFile != NULL)
+   if (outPortDataFile != nullptr)
    {
       mFileManager->attachLocalFile(outPortDataFile);
    }
-   if (definitionDataFile != NULL)
+   if (definitionDataFile != nullptr)
    {
       mFileManager->attachLocalFile(definitionDataFile);
    }
-   if (inPortDataFile != NULL)
+   if (inPortDataFile != nullptr)
    {
       mFileManager->requestRemoteFile(inPortDataFile);
       QObject::connect(mFileManager, SIGNAL(remoteFileFullWrite(const QString&)), this, SLOT(onRemoteFileFullWrite(const QString&)));
@@ -50,7 +50,7 @@ void Client::createLocalNode(const QString &apxText)
 
 void Client::connectTcp(const QHostAddress& address, quint16 port)
 {
-   if (mSocketAdapter == NULL)
+   if (mSocketAdapter == nullptr)
    {
       mSocketAdapter = new RemoteFile::SocketAdapter(32,this);
       mSocketAdapter->setReceiveHandler(mFileManager);
@@ -62,7 +62,7 @@ void Client::connectTcp(const QHostAddress& address, quint16 port)
 
 void Client::close()
 {
-   if (mSocketAdapter != NULL)
+   if (mSocketAdapter != nullptr)
    {
       mSocketAdapter->close();
    }

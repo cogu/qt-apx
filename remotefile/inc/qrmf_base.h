@@ -44,7 +44,7 @@ public:
    TransmitHandler(){}
    virtual ~TransmitHandler(){}
    virtual int getSendAvail() = 0; //transmitHandler shall return how many bytes can be provided by getSendBuffer.
-   virtual char* getSendBuffer(int msgLen) = 0; //transmitHandler shall attempt to allocate a buffer of appropriate length. Returns NULL on failure.
+   virtual char* getSendBuffer(int msgLen) = 0; //transmitHandler shall attempt to allocate a buffer of appropriate length. Returns nullptr on failure.
    virtual int send(int offset, int msgLen) = 0; //buffer is provided by transmit handler. offset is the offset from return-value of getSendBuffer where data was written
 };
 

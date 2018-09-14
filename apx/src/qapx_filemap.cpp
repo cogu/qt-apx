@@ -35,5 +35,5 @@ Apx::File *Apx::FileMap::findByAddress(quint32 address)
 Apx::File *Apx::FileMap::findByName(const char *name)
 {
    (void) name;
-   return NULL;
+   return nullptr;
 }

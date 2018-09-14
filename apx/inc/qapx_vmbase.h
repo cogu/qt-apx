@@ -57,7 +57,7 @@
 //don't to rely on QVariant::Type here in case QT team changes the enum definitions in QVariant.h
 enum VariantType
 {
-   VTYPE_INVALID,          //NULL pointer
+   VTYPE_INVALID,          //nullptr
    VTYPE_SCALAR,           //QVariant
    VTYPE_MAP,              //QVariantMap
    VTYPE_LIST              //QVariantList

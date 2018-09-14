@@ -36,7 +36,7 @@ struct QApxDataElement
       quint32 u32;
       qint32  s32;
    }max;
-   QApxDataElementList *pElementList; //NULL for all cases except when baseType is exactly == QAPX_BASE_TYPE_RECORD
+   QApxDataElementList *pElementList; //nullptr for all cases except when baseType is exactly == QAPX_BASE_TYPE_RECORD
    QApxDataElement():baseType(QAPX_BASE_TYPE_NONE),arrayLen(0),packLen(0),pElementList(0){min.u32=0;max.u32=0;}
    ~QApxDataElement();
 };

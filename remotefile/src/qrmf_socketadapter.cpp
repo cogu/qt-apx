@@ -38,10 +38,10 @@ namespace RemoteFile
 {
 
 SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
-   QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),mTcpSocket(NULL),
-   mLocalSocket(NULL),mReconnectTimer(parent), mReceiveHandler(NULL),
+   QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),mTcpSocket(nullptr),
+   mLocalSocket(nullptr),mReconnectTimer(parent), mReceiveHandler(nullptr),
    m_isAcknowledgeSeen(false),m_isServerConnectedOnce(false),
-   mSendBufPtr(NULL),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
+   mSendBufPtr(nullptr),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
 {
 #ifdef RMF_SOCKET_MESSAGE_LENGTH_DEBUG
    qDebug() << "[RMF_SOCKET_ADAPTER] Constructed with RMF_SOCKET_MESSAGE_LENGTH_DEBUG active";
@@ -66,7 +66,7 @@ SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
    QObject::connect(&mReconnectTimer,SIGNAL(timeout(void)),this,SLOT(onReconnectTimeout(void)));
 #endif
 #ifdef UNIT_TEST
-   mMockSocket = NULL;
+   mMockSocket = nullptr;
 #endif
 }
 
@@ -97,7 +97,7 @@ SocketAdapter::~SocketAdapter()
       break;
    }
 
-   mReceiveHandler=NULL;
+   mReceiveHandler = nullptr;
    close();
 
 }
@@ -123,7 +123,7 @@ int SocketAdapter::connectTcp(const QHostAddress& address, quint16 port)
    }
    else if (mSocketType == RMF_SOCKET_TYPE_TCP)
    {
-      if (mTcpSocket == NULL)
+      if (mTcpSocket == nullptr)
       {
          mTcpSocket = new QTcpSocket(this);
       }
@@ -197,7 +197,7 @@ char *SocketAdapter::getSendBuffer(int msgLen)
 {
    if (msgLen>RMF_SOCKET_ADAPTER_MAX_BUF_LEN)
    {
-      return NULL; //never accept too large size request
+      return nullptr; //never accept too large size request
    }
    if (msgLen>mSendBuffer.length())
    {
@@ -210,7 +210,7 @@ char *SocketAdapter::getSendBuffer(int msgLen)
 int SocketAdapter::send(int offset, int msgLen)
 {
    int ret_val = 0;
-   if (mSendBufPtr == NULL) //has getSendBuffer not been called?
+   if (mSendBufPtr == nullptr) //has getSendBuffer not been called?
    {
       ret_val = -2; // Sequence error
    }
@@ -264,7 +264,7 @@ int SocketAdapter::send(int offset, int msgLen)
       default:
          break;
       }
-      mSendBufPtr=NULL; //set mSendBufPtr back to NULL. The client must make another call to getSendBuffer before making another send
+      mSendBufPtr=nullptr; //set mSendBufPtr back to nullptr. The client must make another call to getSendBuffer before making another send
    }
    return ret_val;
 }
@@ -288,7 +288,7 @@ void SocketAdapter::onDisconnected()
    qDebug()<<"[RMF_SOCKET_ADAPTER] onDisconnected";
 #endif
    mReconnectTimer.start(RMF_SOCKET_ADAPTER_RECONNECT_TIMER_MS);
-   if (mReceiveHandler != 0)
+   if (mReceiveHandler != nullptr)
    {
       mReceiveHandler->onDisconnected();
    }
@@ -442,7 +442,7 @@ qint64 SocketAdapter::readSocket(char *pDest, quint32 readLen)
 void SocketAdapter::readHandler(quint32 readAvail)
 {
    char *pDest = prepareReceive(readAvail);
-   if(pDest != NULL)
+   if(pDest != nullptr)
    {
       qint64 result = readSocket(pDest, readAvail);
 
@@ -451,7 +451,7 @@ void SocketAdapter::readHandler(quint32 readAvail)
          char* const pStartOfReceiveBuffer = mReceiveBuffer.data();
          const char* const pEnd = pDest+result;
          const char* pNext = parseRemoteFileData(pStartOfReceiveBuffer, pEnd);
-         if (pNext == NULL)
+         if (pNext == nullptr)
          {
             setError(RMF_ERR_BAD_MSG);
          }
@@ -492,7 +492,7 @@ const char *SocketAdapter::parseRemoteFileData(const char* pBegin, const char* c
 {
    if ( (pBegin == 0) || (pEnd == 0) )
    {
-      return NULL; //invalid arguments
+      return nullptr; //invalid arguments
    }
    /**
     * pBegin is moved forward until there is no more data to parse or there is an incomplete message in buffer
@@ -553,7 +553,7 @@ const char *SocketAdapter::parseRemoteFileData(const char* pBegin, const char* c
                   if ( (address == (RMF_CMD_START_ADDR | RMF_CMD_HIGH_BIT) ) && (cmdType == RMF_CMD_ACK) )
                   {
                      m_isAcknowledgeSeen=true;
-                     if (mReceiveHandler != 0)
+                     if (mReceiveHandler != nullptr)
                      {
                         mReceiveHandler->onConnected(this);
                      }
@@ -566,7 +566,7 @@ const char *SocketAdapter::parseRemoteFileData(const char* pBegin, const char* c
             }
             else
             {
-               if (mReceiveHandler != 0)
+               if (mReceiveHandler != nullptr)
                {
                   bool result = mReceiveHandler->onMsgReceived(pNext, msgLen);
                   if (result == false)

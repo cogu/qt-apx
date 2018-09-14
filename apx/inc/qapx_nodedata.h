@@ -62,14 +62,14 @@ namespace Apx
     *   - nodename.out : Apx::OutputFile (mOutPortDataFile)
     *   - nodename.apx : Apx::OutputFile (mNodeDefinitionFile)
     *
-    * The member mInPortDataFile is NULL after construction if the node has no require ports
-    * The member mOutPortDataFile is NULL after construction if the node has no provide ports
+    * The member mInPortDataFile is nullptr after construction if the node has no require ports
+    * The member mOutPortDataFile is nullptr after construction if the node has no provide ports
     * mNodeDefinitionFile is created in constructor using the constructor argument
     */
    class NodeData : public NodeDataHandler
    {
    public:
-      NodeData(const char *apxText=NULL);
+      NodeData(const char *apxText=nullptr);
       NodeData(QString &apxText);
       virtual ~NodeData();
 
@@ -112,8 +112,8 @@ namespace Apx
    protected:
 #endif
       Apx::Node *mNode;
-      Apx::InputFile *mInPortDataFile; //represents the .in file of the node. Is set to NULL in case this node does not have any require ports.
-      Apx::OutputFile *mOutPortDataFile; //represents the .out file of the node. Is set to NULL in case this node does not have any provide ports.
+      Apx::InputFile *mInPortDataFile; //represents the .in file of the node. Is set to nullptr in case this node does not have any require ports.
+      Apx::OutputFile *mOutPortDataFile; //represents the .out file of the node. Is set to nullptr in case this node does not have any provide ports.
       Apx::OutputFile *mDefinitionFile; //represents the .apx file of the node. this is constructed from the nodeText string durint construction.
       QList<PortDataElement> mInPortDataElements; //one PortDataElement per require port of the node
       QList<PortDataElement> mOutPortDataElements; //one PortDataElement per provide port of the node

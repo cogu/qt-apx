@@ -12,7 +12,7 @@ File::File(): mName(""),
    mDigestType(RMF_DIGEST_TYPE_NONE),
    isWeakRef(true),
    isOpen(false),
-   mFileManager(NULL)
+   mFileManager(nullptr)
 
 {
    memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
@@ -25,7 +25,7 @@ File::File(QString &name, quint32 length) : mName(name),
    mDigestType(RMF_DIGEST_TYPE_NONE),
    isWeakRef(true),
    isOpen(false),
-   mFileManager(NULL)
+   mFileManager(nullptr)
 {
    memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
 }
@@ -38,7 +38,7 @@ File::File(const char *name, quint32 length)
      mDigestType(RMF_DIGEST_TYPE_NONE),
      isWeakRef(true),
      isOpen(false),
-     mFileManager(NULL)
+     mFileManager(nullptr)
   {
      memset(&mDigestData[0],0,RMF_DIGEST_SIZE);
   }

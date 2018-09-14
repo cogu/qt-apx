@@ -7,7 +7,7 @@ using namespace std;
 
 QApxDataElement::~QApxDataElement()
 {
-   if (pElementList != NULL)
+   if (pElementList != nullptr)
    {
       int len = pElementList->length();
       for (int i=0;i<len;i++)
@@ -56,7 +56,7 @@ QApxDataElement *QApxDataElementParser::parseDataSignature(const quint8 *dsg)
                qDebug("[PLUGIN] record parse failure");
                delete pChildElement;
                delete pElement;
-               return 0;
+               return nullptr;
             }
          }
          calcLen(pElement);
@@ -81,22 +81,22 @@ const quint8 *QApxDataElementParser::parseDataElement(const quint8 *pBegin, cons
    pNext = parseName(pNext,pEnd,pElement);
    if (pNext == 0)
    {
-      return NULL;
+      return nullptr;
    }
    pNext = parseType(pNext,pEnd,pElement);
    if (pNext == 0)
    {
-      return NULL;
+      return nullptr;
    }
    pNext = parseArrayLength(pNext,pEnd,pElement);
    if (pNext == 0)
    {
-      return NULL;
+      return nullptr;
    }
    pNext = parseLimit(pNext,pEnd,pElement);
    if (pNext == 0)
    {
-      return NULL;
+      return nullptr;
    }
    calcLen(pElement);
    return pNext;
@@ -120,7 +120,7 @@ const quint8 *QApxDataElementParser::parseName(const quint8 *pBegin, const quint
          else
          {
             qDebug("[PLUGIN] failed to parse string");
-            return 0;
+            return nullptr;
          }
       }
    }
@@ -157,7 +157,7 @@ const quint8 *QApxDataElementParser::parseType(const quint8 *pBegin, const quint
       pElement->baseType=QAPX_BASE_TYPE_SINT32;
       break;
    default:
-      return NULL;
+      return nullptr;
    }
    return pNext;
 }
@@ -177,13 +177,13 @@ const quint8 *QApxDataElementParser::parseArrayLength(const quint8 *pBegin, cons
             if (qscan_toInt(pMark+1,pNext,&pElement->arrayLen) == 0)
             {
                qDebug("[PLUGIN] qscan_toInt failed");
-               return NULL;
+               return nullptr;
             }
          }
          else
          {
             qDebug("[PLUGIN] failed to parse array length");
-            return NULL;
+            return nullptr;
          }
       }
    }

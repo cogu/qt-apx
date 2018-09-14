@@ -9,35 +9,35 @@ static const char attrInitStringEndMarker = '"';
 
 static const char * buildAttrInitRaw(const char *attr)
 {
-   if (attr==NULL)
+   if (attr==nullptr)
    {
-      return NULL;
+      return nullptr;
    }
-   char * ret_val = NULL;
+   char * ret_val = nullptr;
    const char * initStart = strchr(attr, attrInitMarker);
-   const char * initLastChar = NULL;
-   if (NULL != initStart)
+   const char * initLastChar = nullptr;
+   if (nullptr != initStart)
    {
       // Init value starts on the char after the attrInitMarker
       initStart = initStart + 1;
       // Check if signal group
       initLastChar = strrchr(initStart, attrInitGroupEndBracket);
-      if (NULL == initLastChar)
+      if (nullptr == initLastChar)
       {
          // Not a group - check if string
          initLastChar = strrchr(initStart, attrInitStringEndMarker);
-         if (NULL == initLastChar)
+         if (nullptr == initLastChar)
          {
             // Not a string or group - find init attribute ending if not last attribute
             initLastChar = strchr(initStart, attrSeparator);
-            if (NULL != initLastChar)
+            if (nullptr != initLastChar)
             {
                // End is at char before the attrSeparator
                initLastChar = initLastChar - 1;
             }
          }
       }
-      if (NULL == initLastChar)
+      if (nullptr == initLastChar)
       {
          // Simple init attribute is last - so duplicate the string
          ret_val = qstrdup(initStart);
@@ -54,9 +54,9 @@ static const char * buildAttrInitRaw(const char *attr)
 }
 
 QApxSimplePort::QApxSimplePort(const char *name, const char *dsg, const char *attr):
-   mAttrInit(NULL),mPortIndex(-1)
+   mAttrInit(nullptr),mPortIndex(-1)
 {
-   // qstrdup of null pointer will return null (http://doc.qt.io/qt-5/qbytearray.html#qstrdup)
+   // qstrdup of nullptr will return nullptr (http://doc.qt.io/qt-5/qbytearray.html#qstrdup)
    mName = qstrdup(name);
    mDsg = qstrdup(dsg);
    mAttrFull = qstrdup(attr);
@@ -65,19 +65,19 @@ QApxSimplePort::QApxSimplePort(const char *name, const char *dsg, const char *at
 
 QApxSimplePort::~QApxSimplePort()
 {
-   if (mName != NULL)
+   if (mName != nullptr)
    {
       delete[] mName;
    }
-   if (mDsg != NULL)
+   if (mDsg != nullptr)
    {
       delete[] mDsg;
    }
-   if (mAttrFull != NULL)
+   if (mAttrFull != nullptr)
    {
       delete[] mAttrFull;
    }
-   if (mAttrInit != NULL)
+   if (mAttrInit != nullptr)
    {
       delete[] mAttrInit;
    }

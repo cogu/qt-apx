@@ -67,7 +67,7 @@ int packHeader(char *pDest, int destLimit, quint32 address, bool more_bit)
 int unpackHeader(const char *pBegin, const char *pEnd, quint32 *address, bool *more_bit)
 {
    int retval = 0; //default is to assume that the buffer is too small to parse
-   if( (pBegin != 0) && (pEnd != 0) && (address != NULL) && (more_bit != NULL))
+   if( (pBegin != nullptr) && (pEnd != nullptr) && (address != nullptr) && (more_bit != nullptr))
    {
       const uchar c = *(const uchar*)pBegin;
       *more_bit = (c & RMF_MORE_BIT_IN_CHAR)? true : false;
@@ -107,7 +107,7 @@ int unpackHeader(const char *pBegin, const char *pEnd, quint32 *address, bool *m
 int packFileInfo(char *pDest, int destLimit, const File &file)
 {
    int retval = 0;
-   if ( (pDest != 0) && (destLimit >= 0) )
+   if ( (pDest != nullptr) && (destLimit >= 0) )
    {
       int nameLen = file.mName.length();
       int needed = RMF_FILEINFO_BASE_LEN + nameLen+1; //+1 for null-terminator
@@ -142,7 +142,7 @@ int packFileInfo(char *pDest, int destLimit, const File &file)
 int unpackFileInfo(const char *pBegin, const char *pEnd, File &file, bool networkByteOrder)
 {
    int retval = 0; //default is to assume that the buffer is too small to parse
-   if( (pBegin != 0) && (pEnd != 0) )
+   if( (pBegin != nullptr) && (pEnd != nullptr) )
    {
       if (pBegin+RMF_FILEINFO_BASE_LEN<=pEnd)
       {
@@ -241,7 +241,7 @@ int unpackFileInfo(const char *pBegin, const char *pEnd, File &file, bool networ
 int packFileOpen(char *pDest, int destLimit, quint32 address)
 {
    int retval = 0;
-   if ( pDest != 0 )
+   if ( pDest != nullptr )
    {
       const int needed = (int) (sizeof(address) + sizeof(RMF_DATATYPE_CMD));
       if (needed <= destLimit)
@@ -268,7 +268,7 @@ int packFileOpen(char *pDest, int destLimit, quint32 address)
 int unpackFileOpen(const char *pBegin, const char *pEnd, quint32 &address, bool networkByteOrder)
 {
    int retval = 0;
-   if( (pBegin != 0) && (pEnd != 0) )
+   if( (pBegin != nullptr) && (pEnd != nullptr) )
    {
       if (pBegin+RMF_FILE_OPEN_LEN<=pEnd)
       {
@@ -319,7 +319,7 @@ int unpackFileOpen(const char *pBegin, const char *pEnd, quint32 &address, bool 
 int packFileClose(char *pDest, int destLimit, quint32 address)
 {
    int retval = 0;
-   if ( pDest != 0 )
+   if ( pDest != nullptr )
    {
       int needed = (int) (sizeof(address) + sizeof(RMF_DATATYPE_CMD));
       if (needed <= destLimit)
@@ -346,7 +346,7 @@ int packFileClose(char *pDest, int destLimit, quint32 address)
 int unpackFileClose(const char *pBegin, const char *pEnd, quint32 &address, bool networkByteOrder)
 {
    int retval = 0;
-   if( (pBegin != 0) && (pEnd != 0) )
+   if( (pBegin != nullptr) && (pEnd != nullptr) )
    {
       if (pBegin+RMF_FILE_CLOSE_LEN<=pEnd)
       {

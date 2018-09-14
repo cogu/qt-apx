@@ -51,12 +51,12 @@ int encode16(char *pDest, int destLimit, quint16 value)
  * @param pBegin
  * @param pEnd
  * @param value
- * @return number of bytes read from pBegin. Valid values are 0, 1 and 2. -1 is returned when arguments are invalid (e.g. if value is NULL or pEnd<pBegin)
+ * @return number of bytes read from pBegin. Valid values are 0, 1 and 2. -1 is returned when arguments are invalid (e.g. if value is nullptr or pEnd<pBegin)
  */
 int decode16(const char* const pBegin, const char* const pEnd, quint16 *value)
 {
    int retval = 0; //default is to read 0 bytes starting from pBegin
-   if( (pBegin != 0) && (pBegin<pEnd) && (value != NULL) )
+   if( (pBegin != nullptr) && (pBegin<pEnd) && (value != nullptr) )
    {
       const uchar c = *(const uchar* const)pBegin;
       if(c & 0x80u) //is long_bit set?
@@ -119,7 +119,7 @@ int encode32(char *pDest, int destLimit, quint32 value)
 int decode32(const char* const pBegin, const char* const pEnd, quint32 *value)
 {
    int retval = 0; //default is to read 0 bytes starting from pBegin
-   if( (pBegin != 0) && (pBegin<pEnd) && (value != NULL) )
+   if( (pBegin != 0) && (pBegin<pEnd) && (value != nullptr) )
    {
       const uchar c = *(const uchar* const)pBegin;
       if(c & 0x80u) //is long_bit set?

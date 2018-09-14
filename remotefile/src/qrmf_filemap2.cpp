@@ -35,7 +35,7 @@ void FileMap2::clear()
    while(it != mFiles.end())
    {
       RemoteFile::File *file = *it;
-      if ( (file != NULL) && (file->isWeakRef==false))
+      if ( (file != nullptr) && (file->isWeakRef==false))
       {
          delete file;
       }
@@ -113,7 +113,7 @@ void FileMap2::iterInit()
 
 File *FileMap2::next()
 {
-   File *retval = NULL;
+   File *retval = nullptr;
    if (mIterator != mFiles.end())
    {
       retval = *mIterator;
@@ -145,7 +145,7 @@ File *FileMap2::findByAddress(quint32 address)
          return mFiles[i];
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 File *FileMap2::findByName(const char *name)
@@ -160,7 +160,7 @@ File *FileMap2::findByName(const char *name)
          return *it;
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 

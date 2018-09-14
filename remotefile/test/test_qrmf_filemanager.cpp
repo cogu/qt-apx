@@ -21,7 +21,7 @@ void TestFileManager::test_start_stop()
 
 void TestFileManager::test_onConnect()
 {
-   MockTransmitHandler transmitHandler(NULL);
+   MockTransmitHandler transmitHandler(nullptr);
    QSignalSpy spy(&transmitHandler, SIGNAL(messageReceived()));
    RemoteFile::FileMap2 *localFileMap = new RemoteFile::FileMapDefault2;
    RemoteFile::FileMap2 *remoteFileMap = new RemoteFile::FileMapDefault2;

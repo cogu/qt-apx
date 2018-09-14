@@ -22,9 +22,9 @@ void TestApxNodeData::test_createNodeData()
    Apx::File *inputFile = nodeData->getInPortDataFile();
    Apx::File *outputFile = nodeData->getOutPortDataFile();
    Apx::File *definitionFile = nodeData->getDefinitionFile();
-   QVERIFY (inputFile != NULL);
-   QVERIFY (outputFile != NULL);
-   QVERIFY (definitionFile != NULL);
+   QVERIFY (inputFile != nullptr);
+   QVERIFY (outputFile != nullptr);
+   QVERIFY (definitionFile != nullptr);
    QCOMPARE(inputFile->mLength, (quint32) 2);
    QCOMPARE(outputFile->mLength, (quint32) 5);
    QCOMPARE(definitionFile->mLength, (quint32) strlen(apxText));
@@ -67,9 +67,9 @@ void TestApxNodeData::test_getRequirePortValue()
       Apx::File *outDataFile = nodeData->getOutPortDataFile();
       Apx::File *inDataFile = nodeData->getInPortDataFile();
       Apx::Node *node = nodeData->getNode();
-      QVERIFY(node != NULL);
-      QVERIFY(outDataFile == NULL);
-      QVERIFY(inDataFile != NULL);
+      QVERIFY(node != nullptr);
+      QVERIFY(outDataFile == nullptr);
+      QVERIFY(inDataFile != nullptr);
       QByteArray testData(6, 0);
       quint8 *pNext = (quint8*) testData.data();
       for (int i=0;i<6; i++)
