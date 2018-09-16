@@ -183,7 +183,7 @@ bool Apx::NodeData::setProvidePortValue(int portId, QVariant &value)
          }
          break;
       case VTYPE_LIST:
-         if (value.canConvert<QVariantMap>())
+         if (value.canConvert<QVariantList>())
          {
             QVariantList list = value.toList();
             exception = mPackVM.exec(progInfo.prog,serializedData,list);
