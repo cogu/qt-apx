@@ -53,7 +53,7 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
    pBegin = (const quint8*) m_buf.constData();
    pEnd = pBegin + m_buf.length();
    pNext = pBegin;
-   pResult = 0;
+   pResult = nullptr;
 
 
    while (pNext < pEnd)
@@ -126,8 +126,15 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
    }
    //update m_buf
    int len = (int) (pNext-pBegin);
-   QByteArray tmp = m_buf.right(m_buf.length()-len);
-   m_buf.swap(tmp);
+   if (len==m_buf.length())
+   {
+      m_buf.clear();
+   }
+   else
+   {
+      QByteArray tmp = m_buf.right(m_buf.length()-len);
+      m_buf.swap(tmp);
+   }
 }
 
 void QApxIStreamBuf::reset()
@@ -304,7 +311,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
 
 const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const quint8 *pEnd, ApxDeclarationLine *data)
 {
-   const quint8 *pNext = (quint8*) pBegin;
+   const quint8 *pNext = pBegin;
    const quint8 *pResult = nullptr;
    if (pNext < pEnd)
    {
