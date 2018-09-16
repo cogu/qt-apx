@@ -363,12 +363,12 @@ void Apx::NodeData::processNode(QByteArray &bytes)
 
 void Apx::NodeData::cleanup()
 {
-   if (mDefinitionFile != nullptr) {delete mDefinitionFile;}
-   if (mOutPortDataFile != nullptr) {delete mOutPortDataFile;}
-   if (mInPortDataFile != nullptr) {delete mInPortDataFile;}
-   if (mNode != nullptr) {delete mNode;}
-   if (mInPortDataMap != nullptr) {delete[] mInPortDataMap;}
-   if (mOutPortDataMap != nullptr) {delete[] mOutPortDataMap;}
+   if (mDefinitionFile != nullptr) {delete mDefinitionFile; mDefinitionFile = nullptr;}
+   if (mOutPortDataFile != nullptr) {delete mOutPortDataFile; mOutPortDataFile = nullptr;}
+   if (mInPortDataFile != nullptr) {delete mInPortDataFile; mInPortDataFile = nullptr;}
+   if (mNode != nullptr) {delete mNode; mNode = nullptr;}
+   if (mInPortDataMap != nullptr) {delete[] mInPortDataMap; mInPortDataMap = nullptr;}
+   if (mOutPortDataMap != nullptr) {delete[] mOutPortDataMap; mOutPortDataMap = nullptr;}
 }
 
 

@@ -29,7 +29,10 @@ void FileManager::onMessage(const Msg& msg)
                mTransmitHandler->send(0,headerLen+payloadLen);
             }
          }
-         delete file;
+         if (file != nullptr)
+         {
+            delete file;
+         }
       }
       break;
    case RMF_MSG_FILEOPEN:
