@@ -7,7 +7,13 @@ namespace Apx
 Client::Client(QObject *parent, bool inPortNotifyWithName)
   : QObject(parent)
   , mInPortNotifyWithName(inPortNotifyWithName)
+  , mInPortDataNotifications(0)
+  , mNodeData()
+  , mLocalFileMap()
+  , mRemoteFileMap()
   , mSocketAdapter(nullptr)
+  , mUnpackVM()
+  , mPackVM()
 {
    mFileManager = new RemoteFile::FileManager(&mLocalFileMap, &mRemoteFileMap);
 }
@@ -71,6 +77,7 @@ void Client::close()
 void Client::inPortDataNotification(NodeData *nodeData, QApxSimplePort *port, const QVariant &value)
 {
    (void) nodeData;
+   mInPortDataNotifications++;
    if (mInPortNotifyWithName)
    {
       emit requirePortData(port->getPortIndex(), QString(port->getName()), value);

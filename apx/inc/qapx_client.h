@@ -37,10 +37,13 @@ namespace Apx
       int findRequirePortId(const QString &name) const;
       int findRequirePortId(const char* const name) const;
 
+      quint32 getInPortDataNotificationCount() const {return mInPortDataNotifications;}
+
       Apx::NodeData *getNodeData() {return &mNodeData;}
 
    protected:
       bool mInPortNotifyWithName;
+      quint32 mInPortDataNotifications;
       NodeData mNodeData;
       Apx::FileMap mLocalFileMap;
       Apx::FileMap mRemoteFileMap;
