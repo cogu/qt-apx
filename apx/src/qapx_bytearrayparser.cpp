@@ -19,7 +19,7 @@ namespace Apx {
     */
    Apx::Node *ByteArrayParser::parseNode(QByteArray &data)
    {
-      Apx::Node *retval = NULL;
+      Apx::Node *retval = nullptr;
       mNode = new Apx::Node();
       mApxInStream.open();
       mApxInStream.write(data);
@@ -33,7 +33,7 @@ namespace Apx {
       {
          delete mNode;
       }
-      mNode=NULL;
+      mNode=nullptr;
       return retval;
    }
 
@@ -69,55 +69,61 @@ namespace Apx {
 
    void ByteArrayParser::apx_istream_nodeQueryRspStart(const QByteArray &name, const QByteArray &dim)
    {
-      if (mNode != NULL)
+      if (mNode != nullptr)
       {
          mNode->setName(name);
       }
       (void) dim;
    }
 
+   const QApxDataType* ByteArrayParser::getDataTypeFromDsg(const quint8 *pNext, const quint8 *pEnd)
+   {
+      if ((pNext < pEnd) && (pNext[0] == '['))
+      {
+         const quint8 *pMark = pNext;
+         pNext=qscan_matchPair(pMark,pEnd,'[',']','\\');
+         if (pNext > pMark)
+         {
+            int value;
+            if (qscan_toInt(pMark+1,pNext,&value) == nullptr)
+            {
+               qDebug("[PLUGIN] qscan_toInt failed to get type id");
+               return nullptr;
+            }
+            return mNode->getTypeById(value);
+         }
+      }
+      return nullptr;
+   }
+
    void ByteArrayParser::apx_istream_require(const QByteArray &name, const QByteArray &dsg, const QByteArray &attr)
    {
-      if (mNode != NULL)
+      if (mNode != nullptr)
       {
-         const quint8 *pBegin = (const quint8*) dsg.constData();
-         const quint8 *pEnd = pBegin + dsg.size();
-         const quint8 *pNext=pBegin;
-         const quint8 *pMark;
+         const quint8 *pNext = reinterpret_cast<const quint8*>(dsg.constData());
+         const quint8 *pEnd = pNext + dsg.size();
+         QApxSimpleRequirePort* requrePort = nullptr;
          if ( pNext < pEnd)
          {
             if (pNext[0]=='T')
             {
-               if (pNext[1] == '[')
+               const QApxDataType *dataType = getDataTypeFromDsg(&pNext[1], pEnd);
+               if (dataType != nullptr)
                {
-                  pMark = pNext+1;
-                  pNext=qscan_matchPair(pMark,pEnd,'[',']','\\');
-                  if (pNext > pMark)
-                  {
-                     int value;
-                     if (qscan_toInt(pMark+1,pNext,&value) == 0)
-                     {
-                        qDebug("[PLUGIN] qscan_toInt failed");
-                        return;
-                     }
-                     //qDebug("[PLUGIN] %s: %d",name.constData(),value);
-                     QApxDataType *dataType = mNode->getTypeById(value);
-                     if (dataType != NULL)
-                     {
-                        QApxSimpleRequirePort *port = new QApxSimpleRequirePort(name.constData(),dataType->getDataSignature(),attr.constData());
-                        mNode->appendRequirePort(port);
-                     }
-                     else
-                     {
-                        qDebug("[PLUGIN] no datatype found for %s",name.constData());
-                     }
-                  }
+                  requrePort = new QApxSimpleRequirePort(name.constData(),dataType->getDataSignature(),attr.constData());
+               }
+               else
+               {
+                  qDebug("[PLUGIN] no datatype found for %s",name.constData());
                }
             }
             else
             {
-               QApxSimpleRequirePort *port = new QApxSimpleRequirePort(name.constData(),dsg.constData(),attr.constData());
-               mNode->appendRequirePort(port);
+               requrePort = new QApxSimpleRequirePort(name.constData(),dsg.constData(),attr.constData());
+            }
+            if (requrePort != nullptr)
+            {
+               mNode->appendRequirePort(requrePort);
             }
          }
       }
@@ -125,46 +131,33 @@ namespace Apx {
 
    void ByteArrayParser::apx_istream_provide(const QByteArray &name, const QByteArray &dsg, const QByteArray &attr)
    {
-      if (mNode != NULL)
+      if (mNode != nullptr)
       {
-         const quint8 *pBegin = (const quint8*) dsg.constData();
-         const quint8 *pEnd = pBegin + dsg.size();
-         const quint8 *pNext=pBegin;
-         const quint8 *pMark;
+         const quint8 *pNext = reinterpret_cast<const quint8*>(dsg.constData());
+         const quint8 *pEnd = pNext + dsg.size();
+         QApxSimpleProvidePort *providerPort = nullptr;
          if ( pNext < pEnd)
          {
             if (pNext[0]=='T')
             {
-               if (pNext[1] == '[')
+               const QApxDataType *dataType = getDataTypeFromDsg(&pNext[1], pEnd);
+               if (dataType != nullptr)
                {
-                  pMark = pNext+1;
-                  pNext=qscan_matchPair(pMark,pEnd,'[',']','\\');
-                  if (pNext > pMark)
-                  {
-                     int value;
-                     if (qscan_toInt(pMark+1,pNext,&value) == 0)
-                     {
-                        qDebug("[PLUGIN] qscan_toInt failed");
-                        return;
-                     }
-                     QApxDataType *dataType = mNode->getTypeById(value);
-                     if (dataType != NULL)
-                     {
-                        QApxSimpleProvidePort *port = new QApxSimpleProvidePort(name.constData(),dataType->getDataSignature(),attr.constData());
-                        mNode->appendProvidePort(port);
-                     }
-                     else
-                     {
-                        qDebug("[PLUGIN] no datatype found for %s",name.constData());
-                     }
-                  }
+                  providerPort = new QApxSimpleProvidePort(name.constData(),dataType->getDataSignature(),attr.constData());
+               }
+               else
+               {
+                  qDebug("[PLUGIN] no datatype found for %s",name.constData());
                }
             }
             else
             {
-               QApxSimpleProvidePort *port = new QApxSimpleProvidePort(name.constData(),dsg.constData(),attr.constData());
-               mNode->appendProvidePort(port);
+               providerPort = new QApxSimpleProvidePort(name.constData(),dsg.constData(),attr.constData());
             }
+         }
+         if (providerPort != nullptr)
+         {
+            mNode->appendProvidePort(providerPort);
          }
       }
    }
@@ -172,7 +165,7 @@ namespace Apx {
    void ByteArrayParser::apx_istream_typedef(const QByteArray &name, const QByteArray &dsg, const QByteArray &attr)
    {
       (void)name;
-      if (mNode != NULL)
+      if (mNode != nullptr)
       {
          QApxDataType *datatype = new QApxDataType(name.constData(),dsg.constData(),attr.constData());
          mNode->appendType(datatype);

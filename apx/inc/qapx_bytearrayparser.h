@@ -2,6 +2,7 @@
 #define QAPXBYTEARRAYPARSER_H
 
 #include "qapx_stream.h"
+#include "qapxdatatype.h"
 
 namespace Apx
 {
@@ -39,6 +40,9 @@ namespace Apx
    protected:
       QApxIStreamBuf mApxInStream;
       Apx::Node *mNode;
+
+   private:
+      const QApxDataType* getDataTypeFromDsg(const quint8 *pNext, const quint8 *pEnd);
 
    };
 }
