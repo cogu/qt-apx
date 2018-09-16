@@ -125,10 +125,15 @@ int SocketAdapter::connectTcp(const QHostAddress& address, quint16 port)
    {
       if (mTcpSocket == nullptr)
       {
-         mTcpSocket = new QTcpSocket(this);
+         //mTcpSocket = new QTcpSocket(this);
+         qCritical() << "mTcpSocket lost signal connections";
       }
-      m_isAcknowledgeSeen=false;
-      mTcpSocket->connectToHost(mTcpAddress, mTcpPort);
+      else
+      {
+         m_isAcknowledgeSeen=false;
+         mTcpSocket->connectToHost(mTcpAddress, mTcpPort);
+         return 0;
+      }
    }
    return -1;
 }
