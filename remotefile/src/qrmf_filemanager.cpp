@@ -16,11 +16,11 @@ void FileManager::onMessage(const Msg& msg)
    case RMF_MSG_FILEINFO:
       {
          const RemoteFile::File* const file = (RemoteFile::File*) msg.msgData3;
-         if( (mTransmitHandler != NULL) && (file != NULL) )
+         if( (mTransmitHandler != nullptr) && (file != nullptr) )
          {
             const int msgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + ((int)msg.msgData1);
             char *sendBuffer = mTransmitHandler->getSendBuffer(msgLen);
-            if (sendBuffer != NULL)
+            if (sendBuffer != nullptr)
             {
                int headerLen = RemoteFile::packHeader(sendBuffer, msgLen,RMF_CMD_START_ADDR,false);
                sendBuffer+=headerLen;
@@ -29,14 +29,17 @@ void FileManager::onMessage(const Msg& msg)
                mTransmitHandler->send(0,headerLen+payloadLen);
             }
          }
-         delete file;
+         if (file != nullptr)
+         {
+            delete file;
+         }
       }
       break;
    case RMF_MSG_FILEOPEN:
       {
          const int maxMsgLen = (int) RMF_HIGH_ADDRESS_SIZE + RMF_FILE_OPEN_LEN;
          char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
-         if (sendBuffer != NULL)
+         if (sendBuffer != nullptr)
          {
             const int headerLen = RemoteFile::packHeader(sendBuffer, maxMsgLen,RMF_CMD_START_ADDR,false);
             sendBuffer+=headerLen;
@@ -50,12 +53,12 @@ void FileManager::onMessage(const Msg& msg)
       {
          quint32 address = (quint32) msg.msgData1;
          const QByteArray* const dataBytes = (QByteArray*) msg.msgData3;
-         if( (mTransmitHandler != NULL) && (dataBytes != NULL) )
+         if( (mTransmitHandler != nullptr) && (dataBytes != nullptr) )
          {
             const int payloadLen = dataBytes->length();
             const int maxMsgLen = ((int)RMF_HIGH_ADDRESS_SIZE) + payloadLen;
             char *sendBuffer = mTransmitHandler->getSendBuffer(maxMsgLen);
-            if (sendBuffer != NULL)
+            if (sendBuffer != nullptr)
             {
                char *p=sendBuffer;
                int headerLen = RemoteFile::packHeader(p, maxMsgLen,address,false);
@@ -69,7 +72,7 @@ void FileManager::onMessage(const Msg& msg)
                }
             }
          }
-         if (dataBytes !=NULL)
+         if (dataBytes !=nullptr)
          {
             delete dataBytes;
          }
@@ -81,7 +84,7 @@ void FileManager::onMessage(const Msg& msg)
 }
 
 FileManager::FileManager(FileMap2 *localFileMap, FileMap2 *remoteFileMap):
-   mTransmitHandler(NULL),
+   mTransmitHandler(nullptr),
    mLocalFileMap(localFileMap),
    mRemoteFileMap(remoteFileMap),
    mRequestedFiles()
@@ -112,7 +115,7 @@ void FileManager::onConnected(TransmitHandler *transmitHandler)
    while(true)
    {
       RemoteFile::File *file = mLocalFileMap->next();
-      if (file == NULL)
+      if (file == nullptr)
       {
          break;
       }
@@ -224,7 +227,7 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
          else
          {
             RemoteFile::File *file = mLocalFileMap->findByAddress(startAddress);
-            if (file != NULL)
+            if (file != nullptr)
             {
                file->isOpen=true;
                QByteArray *fileContent = new QByteArray(file->mLength,0);

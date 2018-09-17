@@ -18,7 +18,7 @@ void TestApxByteParser::parseNormal()
 
    QByteArray bytes(apx_str);
    Apx::Node *node = apxByteArrayParser.parseNode(bytes);
-   QVERIFY(node != NULL);
+   QVERIFY(node != nullptr);
    delete node;
 }
 
@@ -40,5 +40,5 @@ void TestApxByteParser::parseBroken()
 
    QByteArray bytes(apx_str);
    Apx::Node *node = apxByteArrayParser.parseNode(bytes);
-   QVERIFY(node == NULL);
+   QVERIFY(node == nullptr);
 }

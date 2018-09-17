@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
    Apx::NodeData *nodeData = new Apx::NodeData(apx_text);
    Apx::File *outDataFile = nodeData->getOutPortDataFile();
    Apx::File *inDataFile = nodeData->getInPortDataFile();
-   if (inDataFile != NULL)
+   if (inDataFile != nullptr)
    {
       qDebug() << inDataFile->mLength;
    }
-   if (outDataFile != NULL)
+   if (outDataFile != nullptr)
    {
       qDebug() << outDataFile->mLength;
    }

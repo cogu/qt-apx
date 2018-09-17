@@ -11,7 +11,7 @@ namespace RemoteFile
 class MockReceiveHandler : public ReceiveHandler
 {
 public:
-   MockReceiveHandler(): transmitHandler(NULL),mParseResult(true){}
+   MockReceiveHandler(): transmitHandler(nullptr),mParseResult(true){}
    virtual ~MockReceiveHandler(){
       clearMessages();
    }

@@ -2,17 +2,17 @@
 #include <QByteArray>
 
 QApxDataType::QApxDataType(const char *name, const char *dsg, const char *attr):
-   mName(0),mDsg(0),mAttr(0)
+   mName(nullptr),mDsg(nullptr),mAttr(nullptr)
 {
-   if (name != 0)
+   if (name != nullptr)
    {
       mName=qstrdup(name);
    }
-   if (dsg != 0)
+   if (dsg != nullptr)
    {
       mDsg=qstrdup(dsg);
    }
-   if (attr != 0)
+   if (attr != nullptr)
    {
       mAttr=qstrdup(attr);
    }
@@ -20,8 +20,8 @@ QApxDataType::QApxDataType(const char *name, const char *dsg, const char *attr):
 
 QApxDataType::~QApxDataType()
 {
-   if (mName != 0) { delete[] mName;}
-   if (mDsg != 0) { delete[] mDsg;}
-   if (mAttr != 0) { delete[] mAttr;}
+   if (mName != nullptr) { delete[] mName;}
+   if (mDsg != nullptr) { delete[] mDsg;}
+   if (mAttr != nullptr) { delete[] mAttr;}
 }
 

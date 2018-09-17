@@ -24,7 +24,7 @@ void TestSocketAdapter::test_acknowledge()
    sockAdapter.onConnected();
    MockSocket socket;
    QCOMPARE(sockAdapter.connectMock(&socket), 0);
-   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)nullptr);
    socket.receive(acknowledge_msg, ACK_MSG_LEN);
    sockAdapter.onReadyread();
    QCOMPARE(receiveHandler.transmitHandler, &sockAdapter);
@@ -165,7 +165,7 @@ void TestSocketAdapter::test_bad_message()
    sockAdapter.onConnected();
    MockSocket socket;
    QCOMPARE(sockAdapter.connectMock(&socket), 0);
-   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)nullptr);
    socket.receive(acknowledge_msg, ACK_MSG_LEN);
    sockAdapter.onReadyread();
    QCOMPARE(receiveHandler.messages.length(), 0);
@@ -186,7 +186,7 @@ void TestSocketAdapter::test_multiple_bad_messages()
    sockAdapter.onConnected();
    MockSocket socket;
    QCOMPARE(sockAdapter.connectMock(&socket), 0);
-   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)nullptr);
    socket.receive(acknowledge_msg, ACK_MSG_LEN);
    sockAdapter.onReadyread();
    QCOMPARE(receiveHandler.messages.length(), 0);
@@ -214,7 +214,7 @@ void TestSocketAdapter::test_long_message()
    sockAdapter.onConnected();
    MockSocket socket;
    QCOMPARE(sockAdapter.connectMock(&socket), 0);
-   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)NULL);
+   QCOMPARE(receiveHandler.transmitHandler, (RemoteFile::TransmitHandler*)nullptr);
    socket.receive(acknowledge_msg, ACK_MSG_LEN);
    QCOMPARE(sockAdapter.getError(), RMF_ERR_NONE);
    QCOMPARE(receiveHandler.messages.length(), 0);

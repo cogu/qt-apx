@@ -1,6 +1,33 @@
 #include "test_qapx_datavm.h"
 #include "qapx_datavm.h"
 
+class TestVM : public Apx::DataVM {
+    public:
+    const char* wrap_parseArrayLen(const char *pBegin, const char *pEnd, int &arrayLen){return parseArrayLen(pBegin, pEnd, arrayLen); }
+};
+
+void TestDataVM::test_parseArrayLen()
+{
+   TestVM vm;
+   QByteArray len("\x00\x00", 2);
+   int decLen = -1;
+   const char* startAddr = len.constData();
+   const char* endAddr = startAddr + len.length();
+   const char* ret = vm.wrap_parseArrayLen(startAddr, endAddr, decLen);
+   QCOMPARE(decLen, 0);
+   QVERIFY(ret>len.constData());
+
+   decLen = -1;
+   ret = vm.wrap_parseArrayLen(startAddr, endAddr+1, decLen);
+   QCOMPARE(decLen, 0);
+   QVERIFY(ret>len.constData());
+
+   decLen = -1;
+   ret = vm.wrap_parseArrayLen(startAddr, endAddr-1, decLen);
+   QCOMPARE(decLen, -1);
+   QVERIFY(ret == len.constData());
+}
+
 void TestDataVM::test_packUnpackRecord()
 {
    QByteArray pack_prog(  "\x01\x00\x02\x00\x00\x03\x1D""elem1\0\x0F\x1D""elem2\0\x10",22); //compiled program of pack({"elem1"C"elem2"S})
@@ -129,6 +156,102 @@ void TestDataVM::test_packUnpackU8Array()
    result = vm.exec(unpack_prog, serializedData, output);
    QVERIFY(result == 0);
    QCOMPARE(output,input);
+}
+
+void TestDataVM::test_unpackShortU8Array()
+{
+   QByteArray unpack_prog_both ("\x01\x01\x03\x00\x00\x03\x09\x00\x03",9); //unpack U8 to QVaríantList
+   QByteArray unpack_prog_extra("\x01\x01\x03\x00\x00\x03\x09\x00\x02",9);
+   QByteArray unpack_prog_arr  ("\x01\x01\x03\x00\x00\x02\x09\x00\x03",9);
+   Apx::DataVM vm;
+   QVariantList output;
+
+   // Unpack short data
+   QByteArray shortSerializedData = QByteArray("\x01\x02",2);
+   int result = vm.exec(unpack_prog_both, shortSerializedData, output);
+   QVERIFY(output.isEmpty());
+   QVERIFY(result == VM_EXCEPTION_DATA_LEN_TOO_SHORT);
+   result = vm.exec(unpack_prog_extra, shortSerializedData, output);
+   QVERIFY(output.isEmpty());
+   QVERIFY(result == VM_EXCEPTION_DATA_LEN_TOO_SHORT);
+   result = vm.exec(unpack_prog_arr, shortSerializedData, output);
+   QVERIFY(output.isEmpty());
+   QVERIFY(result == VM_EXCEPTION_DATA_LEN_TOO_SHORT);
+
+   QByteArray unpack_short_prog("\x01\x01\x03\x00\x00\x02\x09\x00\x02",9);
+   result = vm.exec(unpack_short_prog, shortSerializedData, output);
+   QVERIFY(result == 0);
+
+   QVariantList input;
+   input.append(QVariant(1));
+   input.append(QVariant(2));
+   QCOMPARE(output,input);
+}
+
+void TestDataVM::test_unpackPatchU8Array()
+{
+  Apx::DataVM vm;
+  QVariantList output;
+
+  // Unpack short data
+  QByteArray shortSerializedData = QByteArray("\x01\x02",2);
+  QByteArray unpack_short_prog("\x01\x01\x03\x00\x00\x02\x09\x00\x02",9);
+  int result = vm.exec(unpack_short_prog, shortSerializedData, output);
+  QVERIFY(result == 0);
+
+  QVariantList input;
+  input.append(QVariant(1));
+  input.append(QVariant(2));
+  QCOMPARE(output,input);
+
+   QByteArray tinySerializedData = QByteArray("\x07",1);
+   QByteArray unpack_tiny_prog("\x01\x01\x03\x00\x00\x01\x09\x00\x01",9);
+   // only modify first list member
+   result = vm.exec(unpack_tiny_prog, tinySerializedData, output);
+   QVERIFY(result == 0);
+   QVariantList input2;
+   input2.append(QVariant(7));
+   input2.append(QVariant(2));
+   QCOMPARE(output,input2);
+}
+
+void TestDataVM::test_unpackProgErrorsU8Array()
+{
+   Apx::DataVM vm;
+   QVariantList output;
+   QByteArray shortSerializedData = QByteArray("\x01\x02",2);
+
+   // Test extraargs not followed by op code
+   QByteArray unpack_short_extraargs_prog("\x01\x01\x03\x00\x00\x01",6);
+   int result = vm.exec(unpack_short_extraargs_prog, shortSerializedData, output);
+   // TODO should it not be an error that extraargs is not followed by an op code?
+   QVERIFY(result == 0);
+
+   // Test short extraargs prog
+   unpack_short_extraargs_prog.chop(1);
+   result = vm.exec(unpack_short_extraargs_prog, shortSerializedData, output);
+   QVERIFY(result == VM_EXCEPTION_PROGRAM_PARSE_ERROR);
+
+   // Test missmatching extraargs and array size
+   output.clear();
+   QByteArray unpack_short_missmatch1_prog("\x01\x01\x03\x00\x00\x01\x09\x00\x02",9);
+   result = vm.exec(unpack_short_missmatch1_prog, shortSerializedData, output);
+   // TODO is it good that input validation is not done on data actally used?
+   QVERIFY(result == 0);
+   QVariantList input;
+   input.append(QVariant(1));
+   input.append(QVariant(2));
+   QCOMPARE(output,input);
+
+   QByteArray unpack_short_missmatch2_prog("\x01\x01\x03\x00\x00\x02\x09\x00\x01",9);
+   result = vm.exec(unpack_short_missmatch2_prog, shortSerializedData, output);
+   // TODO should input validation be sanity checked?
+   QVERIFY(result == 0);
+
+   // Test short array decode prog
+   unpack_short_missmatch2_prog.chop(1);
+   result = vm.exec(unpack_short_missmatch2_prog, shortSerializedData, output);
+   QVERIFY(result == VM_EXCEPTION_PROGRAM_PARSE_ERROR);
 }
 
 void TestDataVM::test_packUnpackU16Array()

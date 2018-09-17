@@ -22,8 +22,8 @@ DataCompiler::DataCompiler()
  */
 int DataCompiler::genUnpackData(QByteArray &prog, const QApxDataElement *pElement, CompilerStack *pStack)
 {
-   const QApxDataElement *pTopElement=NULL;
-   if (pStack==0)
+   const QApxDataElement *pTopElement=nullptr;
+   if (pStack==nullptr)
    {
       mStack.clear();
       pStack = &mStack;
@@ -58,11 +58,11 @@ int DataCompiler::genUnpackData(QByteArray &prog, const QApxDataElement *pElemen
          for (int i=0;i<end;i++)
          {
             const QApxDataElement* const& pChildElement = pElement->pElementList->at(i);
-            Q_ASSERT(pChildElement != 0);
+            Q_ASSERT(pChildElement != nullptr);
             recordSelect(prog,pChildElement->name.constData());
             if (pChildElement->baseType == QAPX_BASE_TYPE_RECORD)
             {
-               recordEnter(prog,NULL,pStack); //FIXME: have to use NULL-pointer here since it can mess with (pTopElement != pElement) in if-statement above
+               recordEnter(prog,nullptr,pStack); //FIXME: have to use nullptr-pointer here since it can mess with (pTopElement != pElement) in if-statement above
                genUnpackData(prog, pChildElement, pStack);
                recordLeave(prog,pStack);
             }
@@ -107,8 +107,8 @@ int DataCompiler::genUnpackData(QByteArray &prog, const QApxDataElement *pElemen
 
 int DataCompiler::genPackData(QByteArray &prog, const QApxDataElement *pElement, CompilerStack *pStack)
 {
-   const QApxDataElement *pTopElement=NULL;
-   if (pStack==0)
+   const QApxDataElement *pTopElement=nullptr;
+   if (pStack==nullptr)
    {
       mStack.clear();
       pStack = &mStack;
@@ -143,11 +143,11 @@ int DataCompiler::genPackData(QByteArray &prog, const QApxDataElement *pElement,
          for (int i=0;i<end;i++)
          {
             const QApxDataElement* const& pChildElement = pElement->pElementList->at(i);
-            Q_ASSERT(pChildElement != 0);
+            Q_ASSERT(pChildElement != nullptr);
             recordSelect(prog,pChildElement->name.constData());
             if (pChildElement->baseType == QAPX_BASE_TYPE_RECORD)
             {
-               recordEnter(prog,NULL,pStack); //FIXME: have to use NULL-pointer here since it can mess with (pTopElement != pElement) in if-statement above
+               recordEnter(prog,nullptr,pStack); //FIXME: have to use nullptr here since it can mess with (pTopElement != pElement) in if-statement above
                genPackData(prog, pChildElement, pStack);
                recordLeave(prog,pStack);
             }

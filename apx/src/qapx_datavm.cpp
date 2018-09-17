@@ -7,7 +7,7 @@ namespace Apx
 {
 
 QVariantPtr::QVariantPtr():
-scalar(NULL),map(NULL),list(NULL),type(VTYPE_INVALID)
+scalar(nullptr),map(nullptr),list(nullptr),type(VTYPE_INVALID)
 {
 
 }
@@ -15,15 +15,15 @@ scalar(NULL),map(NULL),list(NULL),type(VTYPE_INVALID)
 QVariantPtr::QVariantPtr(QVariant *s, QVariantMap *m, QVariantList *l):
    scalar(s),map(m),list(l)
 {
-   if (s != NULL)
+   if (s != nullptr)
    {
       type=VTYPE_SCALAR;
    }
-   else if(m!=NULL)
+   else if(m!=nullptr)
    {
       type=VTYPE_MAP;
    }
-   else if (l!=NULL)
+   else if (l!=nullptr)
    {
       type=VTYPE_LIST;
    }
@@ -39,15 +39,15 @@ DataVM::State::State():
 {
 }
 
-DataVM::State::State(QVariant *v):arrayIndex(-1),value(v,NULL,NULL)
+DataVM::State::State(QVariant *v):arrayIndex(-1),value(v,nullptr,nullptr)
 {
 }
 
-DataVM::State::State(QVariantMap *v):arrayIndex(-1),value(NULL,v,NULL)
+DataVM::State::State(QVariantMap *v):arrayIndex(-1),value(nullptr,v,nullptr)
 {
 }
 
-DataVM::State::State(QVariantList *v):arrayIndex(-1),value(NULL,NULL,v)
+DataVM::State::State(QVariantList *v):arrayIndex(-1),value(nullptr,nullptr,v)
 {
 
 }
@@ -59,13 +59,13 @@ void DataVM::State::cleanup()
    case VTYPE_INVALID:
       break;
    case VTYPE_SCALAR:
-      if(value.scalar!=NULL) { delete value.scalar; }
+      if(value.scalar!=nullptr) { delete value.scalar; }
       break;
    case VTYPE_MAP:
-      if(value.map!=NULL) { delete value.map; }
+      if(value.map!=nullptr) { delete value.map; }
       break;
    case VTYPE_LIST:
-      if(value.list!=NULL) { delete value.list; }
+      if(value.list!=nullptr) { delete value.list; }
       break;
    }
 }
@@ -73,7 +73,7 @@ void DataVM::State::cleanup()
 
 
 DataVM::DataVM():
-   mRawData(0),mReadBegin(0),mReadEnd(0),mReadNext(0),mWriteNext(0),mWriteEnd(0),mMode(PROG_TYPE_PACK)
+   mRawData(nullptr),mReadBegin(nullptr),mReadEnd(nullptr),mReadNext(nullptr),mWriteNext(nullptr),mWriteEnd(nullptr),mMode(PROG_TYPE_PACK)
 {
 
 }
@@ -153,7 +153,7 @@ const char *DataVM::exceptionToStr(int exception)
    case VM_EXCEPTION_INVALID_FIELD_NAME: return "VM_EXCEPTION_INVALID_FIELD_NAME";
    }
 
-   return NULL;
+   return nullptr;
 }
 
 /**
@@ -161,7 +161,7 @@ const char *DataVM::exceptionToStr(int exception)
  * @param pBegin start of parse array
  * @param pEnd end of parse array (subtracting pBegin from pEnd always yields the length of the enclosed array)
  * @param opCode parsed token
- * @return NULL in case of critical error, pBegin in lack of available bytes ina parse array, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
+ * @return nullptr in case of critical error, pBegin in lack of available bytes ina parse array, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
  */
 const char *DataVM::parseOpCode(const char *pBegin, const char *pEnd, int &opCode)
 {
@@ -178,18 +178,18 @@ const char *DataVM::parseOpCode(const char *pBegin, const char *pEnd, int &opCod
  * @param pBegin
  * @param pEnd
  * @param arrayLen
- * @return NULL in case of critical error, pBegin in lack of available bytes ina parse array, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
+ * @return nullptr in case of critical error, pBegin in lack of available bytes ina parse array, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
  */
 const char *DataVM::parseArrayLen(const char *pBegin, const char *pEnd, int &arrayLen)
 {
-   if( (pBegin==0) || (pEnd==0) || (pBegin>pEnd))
+   if( (pBegin==nullptr) || (pEnd==nullptr) || (pBegin>pEnd))
    {
       //invalud argument
-      return NULL;
+      return nullptr;
    }
    if(pBegin+2<=pEnd)
    {
-      arrayLen  = ((int) pBegin[0]) << ((int)8);
+      arrayLen  = ((int) pBegin[0]) << 8u;
       arrayLen |= (int) pBegin[1];
       return pBegin+2;
    }
@@ -206,7 +206,6 @@ const char *DataVM::parseArrayLen(const char *pBegin, const char *pEnd, int &arr
 const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEnd, int &exception)
 {
    const char *pNext=pBegin;
-   const char *pMark=pNext;
 
    exception = VM_EXCEPTION_NO_EXCEPTION;
    switch(opCode)
@@ -217,7 +216,8 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
       {
          int progType;
          int typeId;
-         int packLen;         
+         int packLen;
+         const char *pMark=pNext;
          pNext=parseArgsExtra(pNext,pEnd,progType,typeId,packLen);
          if (pNext>pMark)
          {
@@ -228,7 +228,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
             exception = VM_EXCEPTION_PROGRAM_PARSE_ERROR;
          }
       }
-      break;      
+      break;
    case OPCODE_UNPACK_U8:
       exception=execUnpackU8();
       break;
@@ -250,6 +250,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    case OPCODE_UNPACK_STR:
       {
          int strLen;
+         const char *pMark=pNext;
          pNext=parseArrayLen(pNext,pEnd,strLen);
          if (pNext>pMark)
          {
@@ -266,6 +267,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    case OPCODE_UNPACK_U32AR:
       {
          int arrayLen;
+         const char *pMark=pNext;
          pNext=parseArrayLen(pNext,pEnd,arrayLen);
          if (pNext>pMark)
          {
@@ -309,6 +311,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    case OPCODE_PACK_STR:
       {
          int strLen;
+         const char *pMark=pNext;
          pNext=parseArrayLen(pNext,pEnd,strLen);
          if (pNext>pMark)
          {
@@ -325,6 +328,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    case OPCODE_PACK_U32AR:
       {
          int arrayLen;
+         const char *pMark=pNext;
          pNext=parseArrayLen(pNext,pEnd,arrayLen);
          if (pNext>pMark)
          {
@@ -350,6 +354,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    case OPCODE_RECORD_SELECT:
       {
          const char *fieldName;
+         const char *pMark=pNext;
          pNext=parseRecordSelectExtra(pNext,pEnd,fieldName);
          if (pNext>pMark)
          {
@@ -364,7 +369,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    default:
       qDebug("[APX] opcode not implemented: %d,",opCode);
       exception = VM_EXCEPTION_INVALID_OP_CODE;
-      return NULL;
+      return nullptr;
    }
    return pNext;
 }
@@ -374,7 +379,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
  * @param pEnd end of parse array
  * @param variantType parsed token
  * @param packLen parsed token
- * @return NULL in case of critical error, pBegin in lack of available bytes ina parse rray, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
+ * @return nullptr in case of critical error, pBegin in lack of available bytes ina parse rray, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
  */
 const char *DataVM::parseArgsExtra(const char *pBegin, const char *pEnd, int &progType, int &typeId, int &packLen)
 {
@@ -395,27 +400,27 @@ const char *DataVM::parseArgsExtra(const char *pBegin, const char *pEnd, int &pr
  * @param pBegin start of parse array
  * @param pEnd end of parse array
  * @param name parsed token
- * @return NULL in case of critical error, pBegin in lack of available bytes ina parse rray, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
+ * @return nullptr in case of critical error, pBegin in lack of available bytes ina parse rray, else it returns a pointer between pBegin+1 and pEnd where the parsing was stopped
  */
 const char *DataVM::parseRecordSelectExtra(const char *pBegin, const char *pEnd, const char *&name)
 {
    const char *pNext = pBegin;
-   name=NULL;
-   if ( (pBegin == 0) || (pEnd==0) || (pBegin >pEnd) )
+   name=nullptr;
+   if ( (pBegin == nullptr) || (pEnd==nullptr) || (pBegin >pEnd) )
    {
       //invalid arguments
-      return NULL;
+      return nullptr;
    }
    while(pNext<pEnd)
    {
       char c=*pNext++;
-      if (c==0)
+      if (c=='\0')
       {
          name=pBegin;
          break;
       }
    }
-   if(name == NULL)
+   if(name == nullptr)
    {
       //null-termination not found before pEnd (not enough bytes in buffer)
       return pBegin;
@@ -435,8 +440,8 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    if( (progType == PROG_TYPE_UNPACK) || (progType == PROG_TYPE_PACK) )
-   {      
-      //1. verify that the varianType we got is of correct type
+   {
+      //1. verify that the variantType we got is of correct type
       if ( (typeId == VTYPE_SCALAR) || (typeId == VTYPE_LIST) || (typeId == VTYPE_MAP) )
       {
          if (typeId != mState.value.type)
@@ -448,13 +453,13 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
       {
          exception = VM_EXCEPTION_UNKNOWN_VARIANT_TYPE;
       }
-      if ( (exception == VM_EXCEPTION_NO_EXCEPTION) )
+      if (exception == VM_EXCEPTION_NO_EXCEPTION)
       {
          if (progType == PROG_TYPE_UNPACK)
          {
             //2a. verify that the buffer we got has enough data
             //how many bytes is in the buffer?
-            if ( mRawData == 0 )
+            if ( mRawData == nullptr )
             {
                exception = VM_EXCEPTION_DATA_LEN_TOO_SHORT;
             }
@@ -501,7 +506,7 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
 int DataVM::execRecordSelect(const char *fieldName)
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
-   if (mState.value.map == NULL)
+   if (mState.value.map == nullptr)
    {
       exception = VM_EXCEPTION_INVALID_VARIANT_TYPE;
    }
@@ -562,7 +567,7 @@ int DataVM::execUnpackS32()
 int DataVM::execUnpackString(int strLen)
 {
    //1. verify that data pointers are setup correctly
-   if( (mReadNext == 0) || (mReadEnd==0) || (mReadNext>mReadEnd) )
+   if( (mReadNext == nullptr) || (mReadEnd==nullptr) || (mReadNext>mReadEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -584,12 +589,12 @@ int DataVM::execUnpackString(int strLen)
    Q_ASSERT(actualStrLen<=strLen);
    QString tmp=QString::fromLocal8Bit(mReadNext,actualStrLen);
    mReadNext+=strLen;
-   if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != NULL))
+   if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != nullptr))
    {
       //4.1 unpack string
       mState.value.scalar->setValue(tmp);
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
       mState.value.map->insert(mState.fieldName,QVariant(tmp));
    }
@@ -649,7 +654,7 @@ int DataVM::execPackString(int strLen)
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    //1. verify that data pointers are setup correctly
-   if( (mWriteNext == 0) || (mWriteEnd==0) || (mWriteNext>mWriteEnd) )
+   if( (mWriteNext == nullptr) || (mWriteEnd==nullptr) || (mWriteNext>mWriteEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -661,12 +666,12 @@ int DataVM::execPackString(int strLen)
    //3. pack based on QVariantPtr type
    QString tmp;
    mReadNext+=strLen;
-   if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != NULL))
+   if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != nullptr))
    {
       //4.1 unpack string
       tmp = mState.value.scalar->toString();
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
       tmp = (*mState.value.map)[mState.fieldName].toString();
    }
@@ -750,7 +755,7 @@ template<typename T> int DataVM::packUnsignedInteger()
    switch(mState.value.type)
    {
    case VTYPE_SCALAR:
-      if (mState.value.scalar != 0)
+      if (mState.value.scalar != nullptr)
       {
          value = mState.value.scalar->toUInt(&ok);
       }
@@ -781,7 +786,7 @@ template<typename T> int DataVM::packUnsignedInteger()
    }
    if (exception == VM_EXCEPTION_NO_EXCEPTION)
    {
-      if ( (ok == true) && (mWriteNext!=0) && (mWriteNext<mWriteEnd) )
+      if ( (ok == true) && (mWriteNext!=nullptr) && (mWriteNext<mWriteEnd) )
       {
          qToLittleEndian<T>(value, (uchar*)mWriteNext);
          mWriteNext+=sizeof(T);
@@ -806,7 +811,7 @@ template<typename T> int DataVM::packSignedInteger()
    switch(mState.value.type)
    {
    case VTYPE_SCALAR:
-      if (mState.value.scalar != 0)
+      if (mState.value.scalar != nullptr)
       {
          value = mState.value.scalar->toUInt(&ok);
       }
@@ -837,7 +842,7 @@ template<typename T> int DataVM::packSignedInteger()
    }
    if (exception == VM_EXCEPTION_NO_EXCEPTION)
    {
-      if ( (ok == true) && (mWriteNext!=0) && (mWriteNext<mWriteEnd) )
+      if ( (ok == true) && (mWriteNext!=nullptr) && (mWriteNext<mWriteEnd) )
       {
          qToLittleEndian<T>(value, (uchar*)mWriteNext);
          mWriteNext+=sizeof(T);
@@ -854,7 +859,7 @@ template<typename T> int DataVM::packUnsignedArray(int arrayLen)
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    //1. verify that data pointers are setup correctly
-   if( (mWriteNext == 0) || (mWriteEnd==0) || (mWriteNext>=mWriteEnd) )
+   if( (mWriteNext == nullptr) || (mWriteEnd==nullptr) || (mWriteNext>=mWriteEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -877,9 +882,9 @@ template<typename T> int DataVM::packUnsignedArray(int arrayLen)
          }
       }
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
-      //4.2 unpack as an element in a QVariantMAp, this reqires that a field name has been selected previously.
+      //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       if (mState.fieldName.length()==0)
       {
          exception = VM_EXCEPTION_INVALID_FIELD_NAME;
@@ -899,10 +904,8 @@ template<typename T> int DataVM::packUnsignedArray(int arrayLen)
                return exception;
             }
          }
-         mState=mStateStack.top();
-         mStateStack.pop();
-         QVariant tmp(list);
-         mState.value.map->insert(mState.fieldName,tmp);
+         mState=mStateStack.pop();
+         mState.value.map->insert(mState.fieldName,list);
       }
    }
    else
@@ -920,7 +923,7 @@ template<typename T> int DataVM::packSignedArray(int arrayLen)
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    //1. verify that data pointers are setup correctly
-   if( (mWriteNext == 0) || (mWriteEnd==0) || (mWriteNext>=mWriteEnd) )
+   if( (mWriteNext == nullptr) || (mWriteEnd==nullptr) || (mWriteNext>=mWriteEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -943,9 +946,9 @@ template<typename T> int DataVM::packSignedArray(int arrayLen)
          }
       }
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
-      //4.2 unpack as an element in a QVariantMAp, this reqires that a field name has been selected previously.
+      //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       if (mState.fieldName.length()==0)
       {
          exception = VM_EXCEPTION_INVALID_FIELD_NAME;
@@ -965,10 +968,8 @@ template<typename T> int DataVM::packSignedArray(int arrayLen)
                return exception;
             }
          }
-         mState=mStateStack.top();
-         mStateStack.pop();
-         QVariant tmp(list);
-         mState.value.map->insert(mState.fieldName,tmp);
+         mState=mStateStack.pop();
+         mState.value.map->insert(mState.fieldName,list);
       }
    }
    else
@@ -982,7 +983,7 @@ template<typename T> int DataVM::unpackUnsigned()
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    //1. verify that data pointers are setup correctly
-   if( (mReadNext == 0) || (mReadEnd==0) || (mReadNext>mReadEnd) )
+   if( (mReadNext == nullptr) || (mReadEnd==nullptr) || (mReadNext>mReadEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -1004,7 +1005,7 @@ template<typename T> int DataVM::unpackSigned()
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    //1. verify that data pointers are setup correctly
-   if( (mReadNext == 0) || (mReadEnd==0) || (mReadNext>mReadEnd) )
+   if( (mReadNext == nullptr) || (mReadEnd==nullptr) || (mReadNext>mReadEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -1025,7 +1026,7 @@ template<typename T> int DataVM::unpackSigned()
 template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
 {
    //1. verify that data pointers are setup correctly
-   if( (mReadNext == 0) || (mReadEnd==0) || (mReadNext>mReadEnd) )
+   if( (mReadNext == nullptr) || (mReadEnd==nullptr) || (mReadNext>mReadEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -1036,7 +1037,7 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
    }
    //3. unpack based on QVariantPtr type
-   if( (mState.value.type == VTYPE_LIST) && (mState.value.list != NULL))
+   if( (mState.value.type == VTYPE_LIST) && (mState.value.list != nullptr))
    {
       //4.1 unpack as list
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
@@ -1048,9 +1049,8 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
          }
       }
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
-      int exception;
       //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       QVariantList list;
       list.reserve(arrayLen);
@@ -1059,16 +1059,14 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
       mState=state;
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
-         exception = unpackUnsigned<T>();
+         int exception = unpackUnsigned<T>();
          if(exception != VM_EXCEPTION_NO_EXCEPTION)
          {
             return exception;
          }
       }
-      mState=mStateStack.top();
-      mStateStack.pop();
-      QVariant tmp(list);
-      mState.value.map->insert(mState.fieldName,tmp);
+      mState=mStateStack.pop();
+      mState.value.map->insert(mState.fieldName,list);
    }
    else
    {
@@ -1080,7 +1078,7 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
 template<typename T> int DataVM::unpackSignedArray(int arrayLen)
 {
    //1. verify that data pointers are setup correctly
-   if( (mReadNext == 0) || (mReadEnd==0) || (mReadNext>mReadEnd) )
+   if( (mReadNext == nullptr) || (mReadEnd==nullptr) || (mReadNext>mReadEnd) )
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
@@ -1091,14 +1089,13 @@ template<typename T> int DataVM::unpackSignedArray(int arrayLen)
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
    }
    //3. unpack based on QVariantPtr type
-   if( (mState.value.type == VTYPE_LIST) && (mState.value.list != NULL))
+   if( (mState.value.type == VTYPE_LIST) && (mState.value.list != nullptr))
    {
       //4.1 unpack as list
       return VM_EXCEPTION_NOT_IMPLEMENTED;
    }
-   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != NULL))
+   else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
-      int exception;
       //4.2 unpack as an element in a QVariantMap, this reqires that a field name has been selected previously.
       QVariantList list;
       list.reserve(arrayLen);
@@ -1107,16 +1104,14 @@ template<typename T> int DataVM::unpackSignedArray(int arrayLen)
       mState=state;
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
-         exception = unpackSigned<T>();
+         int exception = unpackSigned<T>();
          if(exception != VM_EXCEPTION_NO_EXCEPTION)
          {
             return exception;
          }
       }
-      mState=mStateStack.top();
-      mStateStack.pop();
-      QVariant tmp(list);
-      mState.value.map->insert(mState.fieldName,tmp);
+      mState=mStateStack.pop();
+      mState.value.map->insert(mState.fieldName,list);
    }
    else
    {

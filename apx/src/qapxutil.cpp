@@ -79,7 +79,7 @@ u16MapElem* u16Map::iterNext(){
 const char* QApx_parseStr(const char *begin, const char *end, char **str)
 {
     const char *next = begin;
-    if( (begin != 0) && (end != 0) && (str != 0)){
+    if( (begin != nullptr) && (end != nullptr) && (str != nullptr)){
        if(next<end){
           char c = '\0';
           char strType = *next++;
@@ -100,17 +100,17 @@ const char* QApx_parseStr(const char *begin, const char *end, char **str)
        }
        return begin;
     }
-    return 0;
+    return nullptr;
 }
 
 char *QApx_makeStr(const char *begin, const char *end)
 {
-    if( (begin != 0) && (end != 0) && (begin<end)){
+    if( (begin != nullptr) && (end != nullptr) && (begin<end)){
        int len = ((int) (end-begin));
        QByteArray tmp (begin,len);
        return qstrdup(tmp.data());
     }
-    return 0;
+    return nullptr;
 }
 #endif
 

@@ -18,6 +18,7 @@ void TestApxClient::createClient()
    client->createLocalNode(apx_str);
    Apx::NodeData *nodeData = client->getNodeData();
    QVERIFY(nodeData != 0);
+   QCOMPARE(client->getInPortDataNotificationCount(), 0u);
 
    delete client;
 }
@@ -49,6 +50,7 @@ void TestApxClient::connectToServer()
    connectedSpy.wait(5000);
    QCOMPARE(connectedSpy.count(), 1);
    QCOMPARE(fullyUpdatedSpy.count(), 1);
+   QCOMPARE(client->getInPortDataNotificationCount(), 1u);
    client->close();
    disconnectSpy.wait(5000);
    QCOMPARE(connectedSpy.count(), 1);

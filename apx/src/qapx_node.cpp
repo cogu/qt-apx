@@ -13,7 +13,7 @@ namespace Apx
       for(it2=mRequirePorts.begin();it2!=mRequirePorts.end();it2++)
       {
          QApxSimplePort *port = *it2;
-         if(port != NULL)
+         if(port != nullptr)
          {
             delete port;
          }
@@ -21,7 +21,7 @@ namespace Apx
       for(it2=mProvidePorts.begin();it2!=mProvidePorts.end();it2++)
       {
          QApxSimplePort *port = *it2;
-         if(port != NULL)
+         if(port != nullptr)
          {
             delete port;
          }
@@ -29,7 +29,7 @@ namespace Apx
       for (it=mDataTypes.begin(); it!= mDataTypes.end(); it++)
       {
          QApxDataType* dataType = *it;
-         if (dataType != NULL)
+         if (dataType != nullptr)
          {
             delete dataType;
          }
@@ -41,24 +41,24 @@ namespace Apx
       mDataTypes.append(dataType);
    }
 
-   QApxDataType *Node::getTypeById(int i)
+   QApxDataType *Node::getTypeById(int i) const
    {
       if (i<mDataTypes.size())
       {
          return mDataTypes.at(i);
       }
-      return (QApxDataType*) NULL;
+      return nullptr;
    }
 
    void Node::appendRequirePort(QApxSimpleRequirePort *port)
    {
-      mRequirePorts.append((QApxSimplePort*) port);
+      mRequirePorts.append(port);
       mPortMap.insert(QString(port->getName()),dynamic_cast<QApxSimplePort*>(port));
    }
 
    void Node::appendProvidePort(QApxSimpleProvidePort *port)
    {
-      mProvidePorts.append((QApxSimplePort*) port);
+      mProvidePorts.append(port);
       mPortMap.insert(QString(port->getName()),dynamic_cast<QApxSimplePort*>(port));
    }
 
@@ -68,7 +68,7 @@ namespace Apx
       {
          return mRequirePorts.at(i);
       }
-      return (QApxSimplePort*) NULL;
+      return nullptr;
    }
 
    QApxSimplePort *Node::getProvidePortById(int i) const
@@ -77,7 +77,7 @@ namespace Apx
       {
          return mProvidePorts.at(i);
       }
-      return (QApxSimplePort*) NULL;
+      return nullptr;
    }
 
    QApxSimplePort *Node::findPortByName(const char *name) const
@@ -87,7 +87,7 @@ namespace Apx
       {
          return it.value();
       }
-      return (QApxSimplePort*) NULL;
+      return nullptr;
    }
 
    void Node::setName(const QString &name)

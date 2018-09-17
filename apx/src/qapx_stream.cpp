@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "qapxbase.h"
 
-QApxIStreamBuf::QApxIStreamBuf():mEventHandler(0),mIsOpen(0),
+QApxIStreamBuf::QApxIStreamBuf():mEventHandler(nullptr),mIsOpen(0),
    mLastMsgType(APX_MSG_TYPE_NONE),mException(APX_EXCEPTION_NO_EXCEPTION),mLine(0)
 {
    reset();
@@ -20,16 +20,16 @@ void QApxIStreamBuf::open()
 {
    mIsOpen = true;
    mLine=1;
-   if (mEventHandler != 0)
+   if (mEventHandler != nullptr)
    {
       mEventHandler->apx_istream_open();
-   }   
+   }
 }
 
 void QApxIStreamBuf::close()
 {
    mIsOpen = false;
-   if (mEventHandler != 0)
+   if (mEventHandler != nullptr)
    {
       mEventHandler->apx_istream_close();
    }
@@ -53,7 +53,7 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
    pBegin = (const quint8*) m_buf.constData();
    pEnd = pBegin + m_buf.length();
    pNext = pBegin;
-   pResult = 0;
+   pResult = nullptr;
 
 
    while (pNext < pEnd)
@@ -64,7 +64,7 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
       {
          //ASCII character (0-127, 7-bit ASCII)
          //wait to parse until a complete line has been seen. lines end with a single \n (not with \r\n as in HTML)         
-         const quint8 *pLineEnd = 0;
+         const quint8 *pLineEnd = nullptr;
          const quint8 *pLineBegin = pNext;
 
          pLineEnd = qscan_searchUntil(pNext,pEnd,(quint8) '\n');
@@ -72,14 +72,14 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
          {
             //if line is empty it means end of APX announcement.
             pNext = pLineEnd+1;
-            if(mEventHandler != 0)
+            if(mEventHandler != nullptr)
             {
                mParseState = APX_PARSE_STATE_NONE;
-               mEventHandler->apx_istream_endTextMsg();               
+               mEventHandler->apx_istream_endTextMsg();
             }
             break;
          }
-         else if (pLineEnd == 0)
+         else if (pLineEnd == nullptr)
          {
             //parse entire line
             pLineEnd=pEnd;
@@ -103,7 +103,7 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
       }
       else
       {
-         //The APX data message flag is set. This marks the beginning of an APX data message         
+         //The APX data message flag is set. This marks the beginning of an APX data message
          pResult = parseDataMsg(pNext,pEnd);
          if (pResult > pNext)
          {
@@ -112,7 +112,7 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
          }
          else
          {
-            if (pResult == 0)
+            if (pResult == nullptr)
             {
                qDebug() << "[PLUGIN] APX parse error"; //invalid message header
             }
@@ -126,8 +126,15 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
    }
    //update m_buf
    int len = (int) (pNext-pBegin);
-   QByteArray tmp = m_buf.right(m_buf.length()-len);
-   m_buf.swap(tmp);
+   if (len==m_buf.length())
+   {
+      m_buf.clear();
+   }
+   else
+   {
+      QByteArray tmp = m_buf.right(m_buf.length()-len);
+      m_buf.swap(tmp);
+   }
 }
 
 void QApxIStreamBuf::reset()
@@ -153,7 +160,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
 {
    ApxHeaderLine *header;
    ApxDeclarationLine *decl;
-   const quint8 *pResult = 0;   
+   const quint8 *pResult = nullptr;
 
    quint8 firstChar;
    quint8 secondChar;
@@ -192,7 +199,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
          if (thirdChar == '*')
          {
             mParseState = APX_PARSE_STATE_NODENAME_RQST;
-            if (mEventHandler != 0)
+            if (mEventHandler != nullptr)
             {
                mEventHandler->apx_istream_nodeNameRqst();
             }
@@ -200,7 +207,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
          else if(thirdChar=='\"')
          {
             mParseState = APX_PARSE_STATE_NODEQUERY_RQST;
-            if (mEventHandler != 0)
+            if (mEventHandler != nullptr)
             {
                const quint8 *pNext=pBegin+2;
                pResult=qscan_matchPair(pNext,pEnd,'"','"','\\');
@@ -228,7 +235,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
          mParseState = APX_PARSE_STATE_NODEQUERY_RSP;
          mLastMsgType = APX_MSG_TYPE_NODEQUERY_RSP;
          pResult=splitDeclarationLine(pBegin,pEnd,decl);
-         if (pResult != 0)
+         if (pResult != nullptr)
          {
             parseDeclaration(decl);
          }
@@ -259,7 +266,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
    case APX_PARSE_STATE_NODEQUERY_RQST:
       if ( (firstChar =='?') && (secondChar == 'N') && (thirdChar == '"') )
       {
-         if (mEventHandler != 0)
+         if (mEventHandler != nullptr)
          {
             const quint8 *pNext=pBegin+2;
             pResult=qscan_matchPair(pNext,pEnd,'"','"','\\');
@@ -281,7 +288,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
       {
          decl = new ApxDeclarationLine;
          pResult=splitDeclarationLine(pBegin,pEnd,decl);
-         if (pResult != 0)
+         if (pResult != nullptr)
          {
             parseDeclaration(decl);
             delete decl;
@@ -291,7 +298,7 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
             mException = APX_EXCEPTION_INVALID_DECLARATION_LINE;
             delete decl;
             return false;
-         }         
+         }
       }
       break;
    default:
@@ -304,21 +311,20 @@ bool QApxIStreamBuf::parseLine(const quint8 *pBegin,const quint8 *pEnd)
 
 const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const quint8 *pEnd, ApxDeclarationLine *data)
 {
-   const quint8 *pNext = (quint8*) pBegin;
-   const quint8 *pResult = 0;
-   int len;
+   const quint8 *pNext = pBegin;
+   const quint8 *pResult = nullptr;
    if (pNext < pEnd)
    {
       data->lineType = *pNext++;
       if (pNext < pEnd)
       {
-         quint8 c = (quint8) *pNext;
+         quint8 c = *pNext;
          if (c == '"')
          {
             pResult = qscan_matchPair(pNext,pEnd,'"','"','\\');
             if (pResult > pNext)
             {
-               len = (int) (pResult-pNext-2); //compensate for the two '"' characters
+               int len = (int) (pResult-pNext-2); //compensate for the two '"' characters
                data->name.clear();
                data->name.insert(0,(const char*) (pNext+1),len); //do not include the first '"" character in string
                pNext = pResult;
@@ -363,14 +369,14 @@ const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const q
          }
       }
    }
-   return 0; //parse failure
+   return nullptr; //parse failure
 }
 
 
 const quint8 *QApxIStreamBuf::parseApxHeaderLine(const quint8 *pBegin, const quint8 *pEnd, ApxHeaderLine *data)
 {
    const quint8 *pNext = pBegin;
-   const quint8 *pResult = 0;
+   const quint8 *pResult = nullptr;
    const char *str = "APX/";
    int len = strlen(str);
    pResult = qscan_matchStr(pNext,pEnd,(const quint8*) str,((const quint8*) str)+len);
@@ -399,35 +405,35 @@ const quint8 *QApxIStreamBuf::parseApxHeaderLine(const quint8 *pBegin, const qui
          }
       }
    }
-   return 0;
+   return nullptr;
 }
 
 void QApxIStreamBuf::parseDeclaration(ApxDeclarationLine *decl)
 {
-   if (decl != 0)
+   if (decl != nullptr)
    {
       switch(decl->lineType)
       {
       case 'N':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_nodeQueryRspStart(decl->name,decl->dsg);
          }
          break;
       case 'T':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_typedef(decl->name,decl->dsg,decl->attr);
          }
          break;
       case 'P':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_provide(decl->name,decl->dsg,decl->attr);
          }
          break;
       case 'R':
-         if (mEventHandler!=0)
+         if (mEventHandler!=nullptr)
          {
             mEventHandler->apx_istream_require(decl->name,decl->dsg,decl->attr);
          }
@@ -565,7 +571,7 @@ const quint8 *QApxIStreamBuf::parseDataMsg(const quint8 *pBegin, const quint8 *p
       else
       {
          //just a header with no data bytes?
-         return 0; //mark parse failure
+         return nullptr; //mark parse failure
       }
    }
    return pNext;
@@ -831,7 +837,7 @@ void QApxOStreamBuf::apxDataMsg(quint8 msgType, quint16 portId, const QByteArray
       quint8 lengthValType;
       if(dataLen<5)
       {
-         lengthValType = dataLen;
+         lengthValType = static_cast<quint8>(dataLen);
       }
       else if (dataLen < 256)
       {

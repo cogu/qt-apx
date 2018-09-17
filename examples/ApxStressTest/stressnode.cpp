@@ -3,7 +3,7 @@
 
 StressNode::StressNode(Apx::Client *client, QObject *parent) : QObject(parent), mClient(client)
 {
-   if(mClient != 0)
+   if(mClient != nullptr)
    {
       mQTestSignal1Id = mClient->findProvidePortId("QTestSignal1");
       mQTestSignal2Id = mClient->findProvidePortId("QTestSignal2");

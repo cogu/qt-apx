@@ -2,6 +2,7 @@
 #define QAPXFILEPARSER_H
 
 #include "qapx_stream.h"
+#include "qapxdatatype.h"
 
 namespace Apx
 {
@@ -41,6 +42,9 @@ public:
 protected:
    QApxIStreamBuf mApxInStream;
    Apx::Node *mNode;
+
+private:
+   const QApxDataType* getDataTypeFromDsg(const quint8 *pNext, const quint8 *pEnd);
 };
 
 #endif // QAPXFILEPARSER_H
