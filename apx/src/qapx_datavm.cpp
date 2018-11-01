@@ -35,7 +35,7 @@ QVariantPtr::QVariantPtr(QVariant *s, QVariantMap *m, QVariantList *l):
 
 
 DataVM::State::State():
-   arrayIndex(-1),value()
+   fieldName(),arrayIndex(-1),value(),mapIterator()
 {
 }
 
@@ -56,8 +56,6 @@ void DataVM::State::cleanup()
 {
    switch(value.type)
    {
-   case VTYPE_INVALID:
-      break;
    case VTYPE_SCALAR:
       if(value.scalar!=nullptr) { delete value.scalar; }
       break;
@@ -67,13 +65,17 @@ void DataVM::State::cleanup()
    case VTYPE_LIST:
       if(value.list!=nullptr) { delete value.list; }
       break;
+   case VTYPE_INVALID:
+      break;
+   default:
+      break;
    }
 }
 
 
 
 DataVM::DataVM():
-   mRawData(nullptr),mReadBegin(nullptr),mReadEnd(nullptr),mReadNext(nullptr),mWriteNext(nullptr),mWriteEnd(nullptr),mMode(PROG_TYPE_PACK)
+   mStateStack(),mState(),mRawData(nullptr),mReadBegin(nullptr),mReadEnd(nullptr),mReadNext(nullptr),mWriteNext(nullptr),mWriteEnd(nullptr),mMode(PROG_TYPE_PACK)
 {
 
 }
@@ -151,6 +153,7 @@ const char *DataVM::exceptionToStr(int exception)
    case VM_EXCEPTION_INVALID_DATA_PTR: return "VM_EXCEPTION_INVALID_DATA_PTR";
    case VM_EXCEPTION_INTERNAL_ERROR: return "VM_EXCEPTION_INTERNAL_ERROR";
    case VM_EXCEPTION_INVALID_FIELD_NAME: return "VM_EXCEPTION_INVALID_FIELD_NAME";
+   default: return "VM_EXCEPTION_CODE_NOT_YET_SUPPORTED";
    }
 
    return nullptr;

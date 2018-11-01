@@ -1,7 +1,12 @@
 #include "qapx_node.h"
 namespace Apx
 {
-   Node::Node()
+   Node::Node():
+      mName(),
+      mDataTypes(),
+      mRequirePorts(),
+      mProvidePorts(),
+      mPortMap()
    {
 
    }

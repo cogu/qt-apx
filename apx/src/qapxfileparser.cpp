@@ -6,7 +6,7 @@
 #include "qscan.h"
 #include "qapx_node.h"
 
-QApxFileParser::QApxFileParser():mNode(0)
+QApxFileParser::QApxFileParser():mApxInStream(),mNode(nullptr)
 {
    mApxInStream.setInputHandler(this);
 }

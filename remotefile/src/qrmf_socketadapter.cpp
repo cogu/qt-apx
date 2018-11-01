@@ -38,8 +38,9 @@ namespace RemoteFile
 {
 
 SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
-   QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),mTcpSocket(nullptr),
-   mLocalSocket(nullptr),mReconnectTimer(parent), mReceiveHandler(nullptr),
+   QObject(parent),mSocketType(RMF_SOCKET_TYPE_NONE),mRxPending(0),
+   mTcpPort(0),mTcpAddress(),mTcpSocket(nullptr),mLocalSocketName(),
+   mLocalSocket(nullptr),mReceiveBuffer(),mSendBuffer(),mReconnectTimer(parent),mReceiveHandler(nullptr),
    m_isAcknowledgeSeen(false),m_isServerConnectedOnce(false),
    mSendBufPtr(nullptr),mErrorCode(RMF_ERR_NONE),mLastSocketError(QAbstractSocket::UnknownSocketError)
 {
@@ -59,7 +60,6 @@ SocketAdapter::SocketAdapter(int numHeaderBits, QObject *parent) :
       mNumHeaderBits=32;
       mMaxNumHeaderLen=(int) sizeof(quint32);
    }
-   mTotalReceived=0;
    mReceiveBuffer.resize(RMF_SOCKET_ADAPTER_MIN_BUF_LEN);
 #ifndef UNIT_TEST
    mReconnectTimer.setSingleShot(true);
@@ -608,7 +608,8 @@ void SocketAdapter::setError(quint32 error, qint64 errorExtra)
       mLastSocketError = (QAbstractSocket::SocketError) errorExtra;
 #ifndef RMF_SOCKET_VERBOSE
       // Avoid printing timeout error if there is no server at initial connect
-      if (m_isServerConnectedOnce || mLastSocketError != QAbstractSocket::SocketTimeoutError)
+      if (m_isServerConnectedOnce || ((mLastSocketError != QAbstractSocket::SocketTimeoutError) &&
+                                      (mLastSocketError != QAbstractSocket::ConnectionRefusedError)) )
       {
          qCritical() << "[RMF_SOCKET_ADAPTER] Error event from socket:" << ((int) mLastSocketError);
       }

@@ -16,7 +16,7 @@ namespace RemoteFile {
 class FileMap2
 {
 public:
-   FileMap2():mLastFileIndex(-1) {}
+   FileMap2():mFiles(),mIterator(),mLastFileIndex(-1) {}
    virtual ~FileMap2() {clear();}
    virtual bool insert(RemoteFile::File *file);
    virtual bool remove(RemoteFile::File *file);
