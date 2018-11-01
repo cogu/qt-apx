@@ -114,7 +114,7 @@ namespace Apx
       Apx::Node *mNode;
       Apx::InputFile *mInPortDataFile; //represents the .in file of the node. Is set to nullptr in case this node does not have any require ports.
       Apx::OutputFile *mOutPortDataFile; //represents the .out file of the node. Is set to nullptr in case this node does not have any provide ports.
-      Apx::OutputFile *mDefinitionFile; //represents the .apx file of the node. this is constructed from the nodeText string durint construction.
+      Apx::OutputFile *mDefinitionFile; //represents the .apx file of the node. this is constructed from the nodeText string during construction.
       QList<PortDataElement> mInPortDataElements; //one PortDataElement per require port of the node
       QList<PortDataElement> mOutPortDataElements; //one PortDataElement per provide port of the node
       PortDataElement** mInPortDataMap; //offset to PortDataElement* mapping of mInDataElements
