@@ -204,9 +204,9 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
                      //switch out remoteFile and requestedFile (requestedFile is of an inherited class)
                      requestedFile->isWeakRef=true; //prevents deletion by mRemoteFileMap object
                      delete remoteFile; //switch out remoteFile
-                     remoteFile = requestedFile; //swith in requestedFile
+                     remoteFile = requestedFile; //switch in requestedFile
                      remoteFile->isOpen=true;
-                     RemoteFile::Msg msg(RMF_MSG_FILEOPEN, remoteFile->mAddress, 0, 0);
+                     RemoteFile::Msg msg(RMF_MSG_FILEOPEN, remoteFile->mAddress, 0, nullptr);
                      emit message(msg);
                      break;
                   }
@@ -252,7 +252,7 @@ void FileManager::processFileWrite(quint32 address, bool more_bit, const char *d
 {
    Q_UNUSED(more_bit);
    RemoteFile::File *file = mRemoteFileMap->findByAddress(address);
-   if ( (file != 0) && (file->isOpen == true) )
+   if ( (file != nullptr) && (file->isOpen == true) )
    {
       quint32 offset = address - file->mAddress;
       const int write_result = file->write((const quint8*) data, offset, dataLen);
