@@ -786,9 +786,9 @@ template<typename T> int DataVM::packUnsignedInteger()
    }
    if (exception == VM_EXCEPTION_NO_EXCEPTION)
    {
-      if ( (ok == true) && (mWriteNext!=nullptr) && (mWriteNext<mWriteEnd) )
+      if ( (ok == true) && (mWriteNext!=nullptr) && ((mWriteNext+sizeof(T))<=mWriteEnd) )
       {
-         qToLittleEndian<T>(value, (uchar*)mWriteNext);
+         qToLittleEndian<T>(value, mWriteNext);
          mWriteNext+=sizeof(T);
       }
       else
@@ -813,7 +813,7 @@ template<typename T> int DataVM::packSignedInteger()
    case VTYPE_SCALAR:
       if (mState.value.scalar != nullptr)
       {
-         value = mState.value.scalar->toUInt(&ok);
+         value = mState.value.scalar->toInt(&ok);
       }
       else
       {
@@ -827,7 +827,7 @@ template<typename T> int DataVM::packSignedInteger()
       }
       else
       {
-         value = mState.value.list->at(mState.arrayIndex).toUInt(&ok);
+         value = mState.value.list->at(mState.arrayIndex).toInt(&ok);
       }
       break;
    case VTYPE_MAP:
@@ -842,9 +842,9 @@ template<typename T> int DataVM::packSignedInteger()
    }
    if (exception == VM_EXCEPTION_NO_EXCEPTION)
    {
-      if ( (ok == true) && (mWriteNext!=nullptr) && (mWriteNext<mWriteEnd) )
+      if ( (ok == true) && (mWriteNext!=nullptr) && ((mWriteNext+sizeof(T))<=mWriteEnd) )
       {
-         qToLittleEndian<T>(value, (uchar*)mWriteNext);
+         qToLittleEndian<T>(value, mWriteNext);
          mWriteNext+=sizeof(T);
       }
       else
