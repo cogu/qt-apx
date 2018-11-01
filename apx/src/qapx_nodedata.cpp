@@ -290,15 +290,18 @@ Apx::Node* Apx::NodeData::parseNode(QByteArray &bytes)
 
 
 void Apx::NodeData::processNode(QByteArray &bytes)
-{   
+{
    QApxDataElementParser dataElementParser;
    Apx::DataCompiler compiler;
-   int numRequirePorts = mNode->getNumRequirePorts();
-   int numProvidePorts = mNode->getNumProvidePorts();
+   const int numRequirePorts = mNode->getNumRequirePorts();
+   const int numProvidePorts = mNode->getNumProvidePorts();
    int i;
    int inputLen=0;
    int outputLen=0;
    QByteArray pack_unpack_prog;
+
+   mInPortUnpackProg.reserve(numRequirePorts);
+   mInPortDataElements.reserve(numRequirePorts);
    for (i=0;i<numRequirePorts;i++)
    {
       QApxSimplePort *port = mNode->getRequirePortById(i);
@@ -315,14 +318,16 @@ void Apx::NodeData::processNode(QByteArray &bytes)
       {
          mInPortUnpackProg.append(PackUnpackProg(pElement, pack_unpack_prog));
       }
-      else
+      delete pElement;
+      if (result != 0)
       {
          QString msg("failed to generate byte code for port ");
          msg.append(port->getName());
          throw Apx::CompilerException(msg.toLatin1().constData());
       }
-      delete pElement;
-   }   
+   }
+   mOutPortPackProg.reserve(numProvidePorts);
+   mOutPortDataElements.reserve(numProvidePorts);
    for (i=0;i<numProvidePorts;i++)
    {
       QApxSimplePort *port = mNode->getProvidePortById(i);
@@ -338,13 +343,13 @@ void Apx::NodeData::processNode(QByteArray &bytes)
       {
          mOutPortPackProg.append(PackUnpackProg(pElement, pack_unpack_prog));
       }
-      else
+      delete pElement;
+      if (result != 0)
       {
          QString msg("failed to generate byte code for port ");
          msg.append(port->getName());
          throw Apx::CompilerException(msg.toLatin1().constData());
       }
-      delete pElement;
    }
    if (inputLen > 0)
    {
