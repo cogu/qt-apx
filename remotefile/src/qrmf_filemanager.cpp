@@ -142,13 +142,13 @@ bool FileManager::onMsgReceived(const char *msgData, int msgLen)
    if (headerLen > 0)
    {
       pNext+=headerLen;
-      int dataLen = msgLen-headerLen;
       if (address == RMF_CMD_START_ADDR)
       {
          processCmd(pNext,pEnd);
       }
       else if (address < RMF_CMD_START_ADDR)
       {
+         const int dataLen = msgLen-headerLen;
          processFileWrite(address,more_bit,pNext,dataLen);
       }
       retval = true;
@@ -158,9 +158,12 @@ bool FileManager::onMsgReceived(const char *msgData, int msgLen)
 
 void FileManager::outPortDataWriteNotify(RemoteFile::File *file, const quint8 *pSrc, quint32 offset, quint32 length)
 {
-   QByteArray *buf = new QByteArray((const char*)pSrc,length);
-   RemoteFile::Msg msg(RMF_MSG_WRITE_DATA,file->mAddress+offset,0,(void*) buf);
-   emit message(msg);
+   if ((file != nullptr) && (file->isOpen))
+   {
+      QByteArray *buf = new QByteArray((const char*)pSrc,length);
+      RemoteFile::Msg msg(RMF_MSG_WRITE_DATA,file->mAddress+offset,0,(void*) buf);
+      emit message(msg);
+   }
 }
 
 void FileManager::processCmd(const char *pBegin, const char *pEnd)
