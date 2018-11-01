@@ -76,8 +76,6 @@ protected:
 
    QByteArray mReceiveBuffer;
    QByteArray mSendBuffer;
-   quint8 mStatus;
-   int mTotalReceived;
    QTimer mReconnectTimer;
    RemoteFile::ReceiveHandler *mReceiveHandler;
    bool m_isAcknowledgeSeen;

@@ -248,6 +248,8 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
       break;
    case RMF_CMD_FILE_CLOSE:
       break;
+   default:
+      break;
    }
 }
 

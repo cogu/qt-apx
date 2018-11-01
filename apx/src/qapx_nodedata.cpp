@@ -13,7 +13,9 @@ using namespace std;
  */
 Apx::NodeData::NodeData(const char *apxText):
    mNode(nullptr), mInPortDataFile(nullptr), mOutPortDataFile(nullptr), mDefinitionFile(nullptr),
+   mInPortDataElements(), mOutPortDataElements(),
    mInPortDataMap(nullptr),mOutPortDataMap(nullptr),mInPortDataMapLen(0),mOutPortDataMapLen(0),
+   mInPortUnpackProg(), mOutPortPackProg(), mUnpackVM(), mPackVM(),
    mNodeHandler(nullptr)
 {
    if (apxText != nullptr)
@@ -26,7 +28,9 @@ Apx::NodeData::NodeData(const char *apxText):
 
 Apx::NodeData::NodeData(QString &apxText):
    mNode(nullptr), mInPortDataFile(nullptr), mOutPortDataFile(nullptr), mDefinitionFile(nullptr),
+   mInPortDataElements(), mOutPortDataElements(),
    mInPortDataMap(nullptr),mOutPortDataMap(nullptr),mInPortDataMapLen(0),mOutPortDataMapLen(0),
+   mInPortUnpackProg(), mOutPortPackProg(), mUnpackVM(), mPackVM(),
    mNodeHandler(nullptr)
 {
    QByteArray bytes(apxText.toLatin1());

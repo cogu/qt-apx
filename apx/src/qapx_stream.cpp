@@ -10,10 +10,10 @@
 #include <ctype.h>
 #include "qapxbase.h"
 
-QApxIStreamBuf::QApxIStreamBuf():mEventHandler(nullptr),mIsOpen(0),
+QApxIStreamBuf::QApxIStreamBuf():mParseState(APX_PARSE_STATE_NONE),m_buf(),mEventHandler(nullptr),mIsOpen(0),
    mLastMsgType(APX_MSG_TYPE_NONE),mException(APX_EXCEPTION_NO_EXCEPTION),mLine(0)
 {
-   reset();
+   resetParseState();
 }
 
 void QApxIStreamBuf::open()
@@ -609,7 +609,7 @@ quint32 QApxIStreamBuf::parseDataLen(const QByteArray &msg)
    return retval;
 }
 
-QApxOStreamBuf::QApxOStreamBuf(QObject *parent):QObject(parent)
+QApxOStreamBuf::QApxOStreamBuf(QObject *parent):QObject(parent),mBuf()
 {
 
 }

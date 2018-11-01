@@ -7,7 +7,8 @@
 
 namespace Apx {
 
-   ByteArrayParser::ByteArrayParser()
+   ByteArrayParser::ByteArrayParser():
+      mApxInStream(),mNode(nullptr)
    {
       mApxInStream.setInputHandler(this);
    }

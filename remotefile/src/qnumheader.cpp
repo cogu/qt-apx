@@ -32,7 +32,7 @@ int encode16(char *pDest, int destLimit, quint16 value)
          if (value >= 32768u)
          {
             //this is special handling for reinterpreting the range 0-127 as 32768-32895 when long_bit is set to true
-            value -= 32768u;
+            value -= static_cast<quint16>(32768u);
          }
          qToBigEndian<quint16>(value, p);
          p[0]|=0x80u; //activate long_bit
@@ -68,7 +68,7 @@ int decode16(const char* const pBegin, const char* const pEnd, quint16 *value)
             tmp&=(quint16)0x7FFFu; //clear the long bit
             if(tmp<128u)
             {
-               tmp+=32768u; //interpret range 0-127 as range 32768-32895 when long_bit was set to 1
+               tmp+=static_cast<quint16>(32768u); //interpret range 0-127 as range 32768-32895 when long_bit was set to 1
             }
             *value=tmp;
          }
