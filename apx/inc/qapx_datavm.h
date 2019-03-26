@@ -99,9 +99,6 @@ protected:
    int execPackString(int strLen);
 
 
-   int storeUnpackedValue(uint value);
-   int storeUnpackedValue(int value);
-   int storeUnpackedValue(QString &value);
    template<typename T> int unpackUnsigned();
    template<typename T> int unpackSigned();
    template<typename T> int storeUnpackedInteger(T value);

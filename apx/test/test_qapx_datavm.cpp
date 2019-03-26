@@ -49,6 +49,134 @@ void TestDataVM::test_packUnpackRecord()
 }
 
 
+void TestDataVM::test_packUnpackS8()
+{
+   QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x01\x12",7); //pack S8 from QVaríant(scalar)
+   QByteArray unpack_prog("\x01\x01\x01\x00\x00\x01\x05",7); //unpack S8 to QVaríant(scalar)
+
+   QVariant input(127);
+   QVariant output(0);
+   QByteArray serializedData;
+
+   Apx::DataVM vm;
+   int result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QCOMPARE(serializedData, QByteArray("\x7f",1));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+   input = QVariant(-128);
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QCOMPARE(serializedData, QByteArray("\x80",1));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+}
+
+void TestDataVM::test_packUnpackS16()
+{
+   QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x02\x13",7); //pack S16 from QVaríant(scalar)
+   QByteArray unpack_prog("\x01\x01\x01\x00\x00\x02\x06",7); //unpack S16 to QVaríant(scalar)
+
+   QVariant input(0);
+   QVariant output(0x7fff);
+   QByteArray serializedData;
+   serializedData.reserve(4);
+   QVERIFY(serializedData.length()==0);
+   memset(serializedData.data(),0xaau,4);
+   uint8_t raw_init_expected[4] = {0xaau ,0xaau ,0xaau, 0xaau};
+   QVERIFY(memcmp(serializedData.data(),raw_init_expected,4) == 0);
+   uint8_t raw_init_resized_expected[4] = {0xaau ,0xaau ,'\0', 0xaau};
+   const int preCapacity = serializedData.capacity();
+   serializedData.resize(2);
+   QVERIFY(memcmp(serializedData.data(),raw_init_resized_expected,4) == 0);
+
+   Apx::DataVM vm;
+   int result = vm.exec(pack_prog, serializedData, input);
+   // Even if byte array is resized (reduced 4->2) the capacity of the underlying data should not change
+   QVERIFY(preCapacity == serializedData.capacity());
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==2);
+   QCOMPARE(serializedData, QByteArray("\x00\x00",2));
+   uint8_t raw_expected[4] = {0,0,'\0', 0xaau};
+   QVERIFY(memcmp(serializedData.data(),raw_expected,4) == 0);
+
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+   input = QVariant(0x1234);
+   serializedData.clear();
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==2);
+   QCOMPARE(serializedData, QByteArray("\x34\x12",2));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+   input = QVariant(-1);
+   serializedData.clear();
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==2);
+   QCOMPARE(serializedData, QByteArray("\xff\xff",2));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+}
+
+void TestDataVM::test_packUnpackS32()
+{
+   QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x04\x14",7); //pack S32 from QVaríant(scalar)
+   QByteArray unpack_prog("\x01\x01\x01\x00\x00\x04\x07",7); //unpack S32 to QVaríant(scalar)
+
+   QVariant input(0);
+   QVariant output(0xffff);
+   QByteArray serializedData;
+
+   Apx::DataVM vm;
+   int result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QCOMPARE(serializedData, QByteArray("\x00\x00\x00\x00",4));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+
+   input = QVariant(0x12345678);
+   serializedData.clear();
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==4);
+   QCOMPARE(serializedData, QByteArray("\x78\x56\x34\x12",4));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+   input = QVariant(0x7fffffff);
+   serializedData.clear();
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==4);
+   QCOMPARE(serializedData, QByteArray("\xff\xff\xff\x7f",4));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+
+   input = QVariant(-1);
+   serializedData.clear();
+   result = vm.exec(pack_prog, serializedData, input);
+   QVERIFY(result == 0);
+   QVERIFY(serializedData.length()==4);
+   QCOMPARE(serializedData, QByteArray("\xff\xff\xff\xff",4));
+   result = vm.exec(unpack_prog, serializedData, output);
+   QVERIFY(result == 0);
+   QCOMPARE(output,input);
+}
+
 void TestDataVM::test_packUnpackU8()
 {
    QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x01\x0F",7); //pack U8 from QVaríant(scalar)

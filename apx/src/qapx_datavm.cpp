@@ -554,17 +554,17 @@ int DataVM::execUnpackU32()
 
 int DataVM::execUnpackS8()
 {
-   return unpackUnsigned<qint8>();
+   return unpackSigned<qint8>();
 }
 
 int DataVM::execUnpackS16()
 {
-   return unpackUnsigned<qint16>();
+   return unpackSigned<qint16>();
 }
 
 int DataVM::execUnpackS32()
 {
-   return unpackUnsigned<qint32>();
+   return unpackSigned<qint32>();
 }
 
 int DataVM::execUnpackString(int strLen)
@@ -574,7 +574,7 @@ int DataVM::execUnpackString(int strLen)
    {
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
-   //2. check that enough data is available in buffer   
+   //2. check that enough data is available in buffer
    if(mReadNext+strLen>mReadEnd)
    {
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
@@ -698,16 +698,6 @@ int DataVM::execPackString(int strLen)
       }
    }
    return exception;
-}
-
-int DataVM::storeUnpackedValue(uint value)
-{
-   return storeUnpackedInteger<uint>(value);
-}
-
-int DataVM::storeUnpackedValue(int value)
-{
-   return storeUnpackedInteger<int>(value);
 }
 
 template<typename T> int DataVM::storeUnpackedInteger(T value)
@@ -993,9 +983,9 @@ template<typename T> int DataVM::unpackUnsigned()
    //2. unpack data value
    if(mReadNext+sizeof(T)<=mReadEnd)
    {
-      uint value = (uint) qFromLittleEndian<T>((const uchar*)mReadNext);
+      T value = qFromLittleEndian<T>((const void*)mReadNext);
       mReadNext+=sizeof(T);
-      exception = storeUnpackedValue(value);
+      exception = storeUnpackedInteger<T>(value);
    }
    else
    {
@@ -1015,9 +1005,9 @@ template<typename T> int DataVM::unpackSigned()
    //2. unpack data value
    if(mReadNext+sizeof(T)<=mReadEnd)
    {
-      int value = (int) qFromLittleEndian<T>((const uchar*)mReadNext);
+      T value = qFromLittleEndian<T>((const void*)mReadNext);
       mReadNext+=sizeof(T);
-      exception = storeUnpackedValue(value);
+      exception = storeUnpackedInteger<T>(value);
    }
    else
    {
