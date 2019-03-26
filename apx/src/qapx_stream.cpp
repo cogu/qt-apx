@@ -64,10 +64,9 @@ void QApxIStreamBuf::write(const QByteArray &chunk)
       {
          //ASCII character (0-127, 7-bit ASCII)
          //wait to parse until a complete line has been seen. lines end with a single \n (not with \r\n as in HTML)         
-         const quint8 *pLineEnd = nullptr;
          const quint8 *pLineBegin = pNext;
+         const quint8 *pLineEnd = qscan_searchUntil(pNext,pEnd,(quint8) '\n');
 
-         pLineEnd = qscan_searchUntil(pNext,pEnd,(quint8) '\n');
          if(pLineEnd == pLineBegin)
          {
             //if line is empty it means end of APX announcement.
@@ -375,11 +374,10 @@ const quint8 * QApxIStreamBuf::splitDeclarationLine(const quint8 *pBegin,const q
 
 const quint8 *QApxIStreamBuf::parseApxHeaderLine(const quint8 *pBegin, const quint8 *pEnd, ApxHeaderLine *data)
 {
-   const quint8 *pNext = pBegin;
-   const quint8 *pResult = nullptr;
    const char *str = "APX/";
    int len = strlen(str);
-   pResult = qscan_matchStr(pNext,pEnd,(const quint8*) str,((const quint8*) str)+len);
+   const quint8 *pNext = pBegin;
+   const quint8 *pResult = qscan_matchStr(pNext,pEnd,(const quint8*) str,((const quint8*) str)+len);
    if ( (pResult > pNext) && (pNext+len == pResult))
    {
       long number;

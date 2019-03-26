@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
    //QCoreApplication a(argc, argv);
-   Apx::Node *node;
    const char *apx_str =
    "APX/1.2\n"
    "N\"Simulator\"\n"
