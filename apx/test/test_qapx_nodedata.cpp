@@ -18,11 +18,11 @@ void TestApxNodeData::test_createNodeDataDualNewline()
    "R\"RheostatLevel\"C:=255\n"
    "\n";
 
-   Apx::NodeData *nodeData = new Apx::NodeData(apxText);
+   Apx::NodeData nodeData = Apx::NodeData(apxText);
 
-   Apx::File *inputFile = nodeData->getInPortDataFile();
-   Apx::File *outputFile = nodeData->getOutPortDataFile();
-   Apx::File *definitionFile = nodeData->getDefinitionFile();
+   Apx::File *inputFile = nodeData.getInPortDataFile();
+   Apx::File *outputFile = nodeData.getOutPortDataFile();
+   Apx::File *definitionFile = nodeData.getDefinitionFile();
    QVERIFY (inputFile != nullptr);
    QVERIFY (outputFile != nullptr);
    QVERIFY (definitionFile != nullptr);

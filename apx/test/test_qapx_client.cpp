@@ -57,4 +57,5 @@ void TestApxClient::connectToServer()
    QCOMPARE(fullyUpdatedSpy.count(), 1);
    QCOMPARE(disconnectSpy.count(), 1);
 
+   delete client;
 }
