@@ -8,6 +8,9 @@ class TestDataVM : public QObject
 private slots:
    void test_parseArrayLen();
    void test_packUnpackRecord();
+   void test_packUnpackS8();
+   void test_packUnpackS16();
+   void test_packUnpackS32();
    void test_packUnpackU8();
    void test_packUnpackU16();
    void test_packUnpackU32();
