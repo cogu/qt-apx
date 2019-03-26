@@ -133,25 +133,6 @@ const quint8 *qscan_toInt(const quint8 *pBegin, const quint8 *pEnd, int *data)
    return pResult;
 }
 
-bool qscan_startsWith(const quint8 *pBegin, const quint8 *pEnd, const char *str)
-{
-   const char *p=str;
-   const quint8 *pNext=pBegin;
-   while (*p!=0)
-   {
-      if (pNext<pEnd)
-      {
-         if (*pNext++ == (quint8) (*p++))
-         {
-            continue;
-         }
-      }
-      return false;
-   }
-   return true;
-}
-
-
 QByteArray qscan_toByteArray(const quint8 *pBegin, const quint8 *pEnd)
 {
    QByteArray result;

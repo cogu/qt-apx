@@ -8,7 +8,6 @@ const quint8 *qscan_matchPair(const quint8 *pBegin, const quint8 *pEnd, const qu
 const quint8 *qscan_matchStr(const quint8 *pBegin, const quint8 *pEnd,const quint8 *pStrBegin, const quint8 *pStrEnd);
 const quint8 *qscan_digit(const quint8 *pBegin, const quint8 *pEnd);
 const quint8 *qscan_toInt(const quint8 *pBegin, const quint8 *pEnd,int *data);
-bool qscan_startsWith(const quint8 *pBegin, const quint8 *pEnd, const char *str);
 QByteArray qscan_toByteArray(const quint8 *pBegin, const quint8 *pEnd);
 
 #endif // QSCAN_H
