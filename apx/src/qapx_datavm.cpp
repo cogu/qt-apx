@@ -192,8 +192,8 @@ const char *DataVM::parseArrayLen(const char *pBegin, const char *pEnd, int &arr
    }
    if(pBegin+2<=pEnd)
    {
-      arrayLen  = ((int) pBegin[0]) << 8u;
-      arrayLen |= (int) pBegin[1];
+      arrayLen  = ((int)(unsigned char)pBegin[0]) << 8;
+      arrayLen |= ((int)(unsigned char)pBegin[1]);
       return pBegin+2;
    }
    return pBegin;
@@ -387,12 +387,12 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
 const char *DataVM::parseArgsExtra(const char *pBegin, const char *pEnd, int &progType, int &typeId, int &packLen)
 {
    if(pBegin+5<=pEnd)
-   {      
+   {
       progType = (int) pBegin[0];
       typeId   = (int) pBegin[1];
-      packLen  =((int) pBegin[2])<<((int)16);
-      packLen |=((int) pBegin[3])<<((int)8);
-      packLen |=((int) pBegin[4]);
+      packLen  =((int)(unsigned char)pBegin[2]) << 16;
+      packLen |=((int)(unsigned char)pBegin[3]) << 8;
+      packLen |=((int)(unsigned char)pBegin[4]);
       return pBegin+5; //consumed 5 bytes from pBegin
    }
    return pBegin; //not enough bytes in buffer, return pBegin
@@ -667,16 +667,16 @@ int DataVM::execPackString(int strLen)
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
    }
    //3. pack based on QVariantPtr type
-   QString tmp;
+   QByteArray tmp;
    mReadNext+=strLen;
    if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != nullptr))
    {
       //4.1 unpack string
-      tmp = mState.value.scalar->toString();
+      tmp = mState.value.scalar->toString().toLocal8Bit();
    }
    else if( (mState.value.type == VTYPE_MAP) && (mState.value.map != nullptr))
    {
-      tmp = (*mState.value.map)[mState.fieldName].toString();
+      tmp = (*mState.value.map)[mState.fieldName].toString().toLocal8Bit();
    }
    else
    {
@@ -694,7 +694,7 @@ int DataVM::execPackString(int strLen)
          //first set entire area allocated to string data to NULL
          memset(mWriteNext, 0, strLen);
          //then copy string data into the nullified array. If the actual string is shorter than the allocated area, the null-bytes will act as null-terminators.
-         memcpy(mWriteNext,tmp.toLocal8Bit().constData(),actualLen);
+         memcpy(mWriteNext,tmp.constData(),actualLen);
       }
    }
    return exception;

@@ -443,8 +443,8 @@ void TestDataVM::test_packUnpackU32Array()
 
 void TestDataVM::test_packUnpackString()
 {
-   QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x10\x15\x00\x10",9); //pack string from QVariant, 16 characters maximum
-   QByteArray unpack_prog("\x01\x01\x01\x00\x00\x10\x08\x00\x10",9); //unpack string array to QVaríant, 16 characters maximum
+   QByteArray pack_prog(  "\x01\x00\x01\x00\x00\x82\x15\x00\x82",9); //pack string from QVariant, 130 characters maximum
+   QByteArray unpack_prog("\x01\x01\x01\x00\x00\x82\x08\x00\x82",9); //unpack string array to QVaríant, 130 characters maximum
 
    QVariant input(QString("Hello World!"));
    QVariant output;
@@ -452,37 +452,25 @@ void TestDataVM::test_packUnpackString()
 
    Apx::DataVM vm;
    int result = vm.exec(pack_prog, serializedData, input);
-   QVERIFY(result == 0);
-   QCOMPARE(serializedData, QByteArray("Hello World!\x00\x00\x00\x00",16));
+   QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
+   QCOMPARE(serializedData, QByteArray("Hello World!").append(118, 0));
    result = vm.exec(unpack_prog, serializedData, output);
-   QVERIFY(result == 0);
+   QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
    QCOMPARE(output.toString().length(), input.toString().length());
    QCOMPARE(output,input);
 
-
    //test too long input string
-   input = QVariant(QString("A Really Long String"));
+   input = QVariant(QString(131, 'a'));
    result = vm.exec(pack_prog, serializedData, input);
    QVERIFY(result == VM_EXCEPTION_DATA_LEN_TOO_SHORT);
 
    //test exactly the allowed length (with no null terminator)
-   input = QVariant(QString("A Normal String1"));
+   input = QVariant(QString(130, 'b'));
    result = vm.exec(pack_prog, serializedData, input);
    QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
-   QCOMPARE(serializedData, QByteArray("A Normal String1",16));
+   QCOMPARE(serializedData, QByteArray(130,'b'));
    result = vm.exec(unpack_prog, serializedData, output);
    QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
    QCOMPARE(output.toString().length(), input.toString().length());
    QCOMPARE(output,input);
-
-   //test string which uses null-terminator as last character
-   input = QVariant(QString("A Normal String"));
-   result = vm.exec(pack_prog, serializedData, input);
-   QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
-   QCOMPARE(serializedData, QByteArray("A Normal String\x00",16));
-   result = vm.exec(unpack_prog, serializedData, output);
-   QVERIFY(result == VM_EXCEPTION_NO_EXCEPTION);
-   QCOMPARE(output.toString().length(), input.toString().length());
-   QCOMPARE(output,input);
-
 }
