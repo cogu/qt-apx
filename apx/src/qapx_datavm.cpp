@@ -155,8 +155,6 @@ const char *DataVM::exceptionToStr(int exception)
    case VM_EXCEPTION_INVALID_FIELD_NAME: return "VM_EXCEPTION_INVALID_FIELD_NAME";
    default: return "VM_EXCEPTION_CODE_NOT_YET_SUPPORTED";
    }
-
-   return nullptr;
 }
 
 /**
@@ -171,7 +169,7 @@ const char *DataVM::parseOpCode(const char *pBegin, const char *pEnd, int &opCod
    const char *pNext=pBegin;
    if (pBegin < pEnd)
    {
-      opCode = (int) *pNext++;
+      opCode = *pNext++;
    }
    return pNext;
 }
@@ -192,8 +190,8 @@ const char *DataVM::parseArrayLen(const char *pBegin, const char *pEnd, int &arr
    }
    if(pBegin+2<=pEnd)
    {
-      arrayLen  = ((int)(unsigned char)pBegin[0]) << 8;
-      arrayLen |= ((int)(unsigned char)pBegin[1]);
+      const quint8* arrayLengthData = reinterpret_cast<const quint8*>(pBegin);
+      arrayLen = (arrayLengthData[0] << 8) | arrayLengthData[1];
       return pBegin+2;
    }
    return pBegin;
@@ -388,11 +386,10 @@ const char *DataVM::parseArgsExtra(const char *pBegin, const char *pEnd, int &pr
 {
    if(pBegin+5<=pEnd)
    {
-      progType = (int) pBegin[0];
-      typeId   = (int) pBegin[1];
-      packLen  =((int)(unsigned char)pBegin[2]) << 16;
-      packLen |=((int)(unsigned char)pBegin[3]) << 8;
-      packLen |=((int)(unsigned char)pBegin[4]);
+      const quint8* argsExtra = reinterpret_cast<const quint8*>(pBegin);
+      progType = argsExtra[0];
+      typeId   = argsExtra[1];
+      packLen  = (argsExtra[2] << 16) | (argsExtra[3] << 8) | argsExtra[4];
       return pBegin+5; //consumed 5 bytes from pBegin
    }
    return pBegin; //not enough bytes in buffer, return pBegin
@@ -487,9 +484,9 @@ int DataVM::execArgs(int progType, int typeId, int packLen)
          {
             //2b. setup the data parse pointers and VM Mode
             mRawData->resize(packLen);
-            mWriteNext=(quint8*) mRawData->data();
-            mWriteEnd=(quint8*) mWriteNext+packLen;
-            Q_ASSERT(mRawData->length()==packLen);
+            mWriteNext = mRawData->data();
+            mWriteEnd = mWriteNext + packLen;
+            Q_ASSERT(mRawData->length() == packLen);
             mMode = PROG_TYPE_PACK;
          }
       }
@@ -692,9 +689,9 @@ int DataVM::execPackString(int strLen)
       else
       {
          //first set entire area allocated to string data to NULL
-         memset(mWriteNext, 0, strLen);
+         memset(mWriteNext, 0, static_cast<size_t>(strLen));
          //then copy string data into the nullified array. If the actual string is shorter than the allocated area, the null-bytes will act as null-terminators.
-         memcpy(mWriteNext,tmp.constData(),actualLen);
+         memcpy(mWriteNext, tmp.constData(), static_cast<size_t>(actualLen));
       }
    }
    return exception;
@@ -744,7 +741,7 @@ template<typename T> int DataVM::packUnsignedInteger()
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    bool ok=false;
-   uint value;
+   uint value = 0;
    switch(mState.value.type)
    {
    case VTYPE_SCALAR:
@@ -781,7 +778,7 @@ template<typename T> int DataVM::packUnsignedInteger()
    {
       if ( (ok == true) && (mWriteNext!=nullptr) && ((mWriteNext+sizeof(T))<=mWriteEnd) )
       {
-         qToLittleEndian<T>(value, mWriteNext);
+         qToLittleEndian<T>(static_cast<T>(value), mWriteNext);
          mWriteNext+=sizeof(T);
       }
       else
@@ -800,7 +797,7 @@ template<typename T> int DataVM::packSignedInteger()
 {
    int exception = VM_EXCEPTION_NO_EXCEPTION;
    bool ok=false;
-   int value;
+   int value = 0;
    switch(mState.value.type)
    {
    case VTYPE_SCALAR:
@@ -837,7 +834,7 @@ template<typename T> int DataVM::packSignedInteger()
    {
       if ( (ok == true) && (mWriteNext!=nullptr) && ((mWriteNext+sizeof(T))<=mWriteEnd) )
       {
-         qToLittleEndian<T>(value, mWriteNext);
+         qToLittleEndian<T>(static_cast<T>(value), mWriteNext);
          mWriteNext+=sizeof(T);
       }
       else
@@ -857,7 +854,7 @@ template<typename T> int DataVM::packUnsignedArray(int arrayLen)
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
    //2. check that enough data is available in buffer
-   int requiredDataBytes=sizeof(T)*arrayLen;
+   int requiredDataBytes = static_cast<int>(sizeof(T)) * arrayLen;
    if(mWriteNext+requiredDataBytes>mWriteEnd)
    {
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
@@ -921,7 +918,7 @@ template<typename T> int DataVM::packSignedArray(int arrayLen)
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
    //2. check that enough data is available in buffer
-   int requiredDataBytes=sizeof(T)*arrayLen;
+   int requiredDataBytes = static_cast<int>(sizeof(T)) * arrayLen;
    if(mWriteNext+requiredDataBytes>mWriteEnd)
    {
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
@@ -983,7 +980,7 @@ template<typename T> int DataVM::unpackUnsigned()
    //2. unpack data value
    if(mReadNext+sizeof(T)<=mReadEnd)
    {
-      T value = qFromLittleEndian<T>((const void*)mReadNext);
+      T value = qFromLittleEndian<T>(mReadNext);
       mReadNext+=sizeof(T);
       exception = storeUnpackedInteger<T>(value);
    }
@@ -1005,7 +1002,7 @@ template<typename T> int DataVM::unpackSigned()
    //2. unpack data value
    if(mReadNext+sizeof(T)<=mReadEnd)
    {
-      T value = qFromLittleEndian<T>((const void*)mReadNext);
+      T value = qFromLittleEndian<T>(mReadNext);
       mReadNext+=sizeof(T);
       exception = storeUnpackedInteger<T>(value);
    }
