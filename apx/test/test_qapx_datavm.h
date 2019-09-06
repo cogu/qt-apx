@@ -16,6 +16,7 @@ private slots:
    void test_packUnpackU32();
    void test_packUnpackU8Array();
    void test_unpackShortU8Array();
+   void test_unpackShortU16Array();
    void test_unpackPatchU8Array();
    void test_unpackProgErrorsU8Array();
    void test_packUnpackU16Array();

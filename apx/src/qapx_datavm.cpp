@@ -862,6 +862,10 @@ template<typename T> int DataVM::packUnsignedArray(int arrayLen)
    //3. pack based on QVariantPtr type
    if(mState.value.type == VTYPE_LIST)
    {
+      if (mState.value.list->length()<arrayLen)
+      {
+         return VM_EXCEPTION_LIST_LEN_TOO_SHORT;
+      }
       //4.1 pack list
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
@@ -926,6 +930,10 @@ template<typename T> int DataVM::packSignedArray(int arrayLen)
    //3. pack based on QVariantPtr type
    if(mState.value.type == VTYPE_LIST)
    {
+      if (mState.value.list->length()<arrayLen)
+      {
+         return VM_EXCEPTION_LIST_LEN_TOO_SHORT;
+      }
       //4.1 pack list
       for(mState.arrayIndex=0;mState.arrayIndex<arrayLen;mState.arrayIndex++)
       {
@@ -1021,7 +1029,7 @@ template<typename T> int DataVM::unpackUnsignedArray(int arrayLen)
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
    //2. check that enough data is available in buffer
-   int requiredDataBytes=sizeof(quint8)*arrayLen;
+   int requiredDataBytes = static_cast<int>(sizeof(T)) * arrayLen;
    if(mReadNext+requiredDataBytes>mReadEnd)
    {
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;
@@ -1073,7 +1081,7 @@ template<typename T> int DataVM::unpackSignedArray(int arrayLen)
       return VM_EXCEPTION_INVALID_DATA_PTR;
    }
    //2. check that enough data is available in buffer
-   int requiredDataBytes=sizeof(quint8)*arrayLen;
+   int requiredDataBytes = static_cast<int>(sizeof(T)) * arrayLen;
    if(mReadNext+requiredDataBytes>mReadEnd)
    {
       return VM_EXCEPTION_DATA_LEN_TOO_SHORT;

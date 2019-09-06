@@ -396,6 +396,32 @@ void TestDataVM::test_unpackProgErrorsU8Array()
    QVERIFY(result == VM_EXCEPTION_PROGRAM_PARSE_ERROR);
 }
 
+void TestDataVM::test_unpackShortU16Array()
+{
+    QByteArray pack_prog(  "\x01\x00\x03\x00\x00\x08\x17\x00\x04",9); //pack U16 array from QVaríantList
+    QByteArray unpack_prog("\x01\x01\x03\x00\x00\x08\x0a\x00\x04",9); //unpack U16 array to QVaríantList
+
+    QVariantList input;
+    input.append(QVariant(100));
+    input.append(QVariant(200));
+    input.append(QVariant(300));
+    QVariantList output;
+    QByteArray serializedData;
+
+    Apx::DataVM vm;
+    int result = vm.exec(pack_prog, serializedData, input);
+    QVERIFY(result == VM_EXCEPTION_LIST_LEN_TOO_SHORT);
+
+    pack_prog.truncate(8);
+    result = vm.exec(pack_prog, serializedData, input);
+    QVERIFY(result == VM_EXCEPTION_PROGRAM_PARSE_ERROR);
+
+    QByteArray expectedSerializedData("\x64\x00\xC8\x00\x2C\x01\x90\x01",8);
+    expectedSerializedData.truncate(7);
+    result = vm.exec(unpack_prog, expectedSerializedData, output);
+    QVERIFY(result == VM_EXCEPTION_DATA_LEN_TOO_SHORT);
+}
+
 void TestDataVM::test_packUnpackU16Array()
 {
    QByteArray pack_prog(  "\x01\x00\x03\x00\x00\x08\x17\x00\x04",9); //pack U16 array from QVaríantList
