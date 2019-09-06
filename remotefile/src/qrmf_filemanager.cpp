@@ -232,10 +232,9 @@ void FileManager::processCmd(const char *pBegin, const char *pEnd)
             RemoteFile::File *file = mLocalFileMap->findByAddress(startAddress);
             if (file != nullptr)
             {
-               file->isOpen=true;
-               QByteArray *fileContent = new QByteArray(file->mLength,0);
-               int result = file->read((quint8*) fileContent->data(), 0, (quint32) file->mLength);
-               if (result != (int) file->mLength)
+               file->isOpen = true;
+               QByteArray *fileContent = new QByteArray(file->mLength, 0);
+               if (file->read((quint8*) fileContent->data(), 0, file->mLength) != (int) file->mLength)
                {
                   Q_ASSERT(0);
                }
