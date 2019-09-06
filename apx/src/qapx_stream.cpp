@@ -693,8 +693,7 @@ void QApxOStreamBuf::apxRequirePortConnect(quint16 portId, quint32 dataLen)
    if (dataLen<256)
    {
       //will fit into one byte
-      data.resize(1);
-      qToBigEndian<quint8>((quint8)dataLen,(uchar*) data.data());
+      data.append((char)dataLen);
    }
    else if (dataLen<65536)
    {
@@ -723,8 +722,7 @@ void QApxOStreamBuf::apxProvidePortConnect(quint16 portId, quint32 dataLen)
    if (dataLen<256)
    {
       //will fit into one byte
-      data.resize(1);
-      qToBigEndian<quint8>((quint8)dataLen,(uchar*) data.data());
+      data.append((char)dataLen);
    }
    else if (dataLen<65536)
    {
@@ -858,8 +856,7 @@ void QApxOStreamBuf::apxDataMsg(quint8 msgType, quint16 portId, const QByteArray
       {
       case APX_LEN_BYTE:
          tmpSize += 1;
-         mBuf.resize(tmpSize);
-         qToBigEndian<quint8>((quint8)dataLen, &(mBuf.data())[preLenTypeSize]);
+         mBuf.append((char)dataLen);
          break;
       case APX_LEN_SHORT:
          tmpSize += 2;
