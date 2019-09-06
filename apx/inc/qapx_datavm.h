@@ -115,8 +115,8 @@ protected:
    const char *mReadBegin;
    const char *mReadEnd;
    const char *mReadNext;
-   quint8 *mWriteNext;
-   quint8 *mWriteEnd;
+   char *mWriteNext;
+   char *mWriteEnd;
    int mMode;
 };
 
