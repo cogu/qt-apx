@@ -471,6 +471,7 @@ void SocketAdapter::readHandler(quint32 readAvail)
             {
                if (pNext > pStartOfReceiveBuffer)
                {
+                  Q_ASSERT(pStartOfReceiveBuffer != nullptr);
                   memmove(pStartOfReceiveBuffer,pNext,unparsedLen);
                }
                mRxPending=unparsedLen;
