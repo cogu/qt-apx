@@ -20,6 +20,7 @@
 #define VM_EXCEPTION_INTERNAL_ERROR          10 //internal error
 #define VM_EXCEPTION_INVALID_FIELD_NAME      11 //unpacking into QVariantMap but no field name was selected     OPCODE_UNPACK_*
 #define VM_EXCEPTION_DATA_CONVERSION_FAILURE 13 //Failed while reading value from QVariant using e.g. ToUint()  OPCODE_PACK_*
+#define VM_EXCEPTION_LIST_LEN_TOO_SHORT      14 //Not enugh array data provided when reading from QList         OPCODE_PACK_*AR
 namespace Apx
 {
 
