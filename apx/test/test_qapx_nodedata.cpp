@@ -68,7 +68,7 @@ void TestApxNodeData::test_createNodeData()
    QVERIFY(nodeData->mInPortDataMap[0] == &nodeData->mInPortDataElements[0]);
    QVERIFY(nodeData->mInPortDataMap[1] == &nodeData->mInPortDataElements[1]);
    QVERIFY(nodeData->mOutPortDataMap[0] == &nodeData->mOutPortDataElements[0]);
-   QVERIFY(nodeData->mOutPortDataMap[1] == &nodeData->mOutPortDataElements[0]);
+   QVERIFY(nodeData->mOutPortDataMap[1] == &nodeData->mOutPortDataElements[0]); // Two byte speed
    QVERIFY(nodeData->mOutPortDataMap[2] == &nodeData->mOutPortDataElements[1]);
    QVERIFY(nodeData->mOutPortDataMap[3] == &nodeData->mOutPortDataElements[2]);
    QVERIFY(nodeData->mOutPortDataMap[4] == &nodeData->mOutPortDataElements[3]);

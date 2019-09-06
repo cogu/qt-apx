@@ -3,6 +3,8 @@
 #include <QtEndian>
 #include <QDebug>
 
+//#define PACK_ASSERT yes
+
 namespace Apx
 {
 
@@ -84,7 +86,16 @@ int DataVM::exec(const QByteArray &prog, QByteArray &rawData, QVariant &value)
 {
    mState = DataVM::State(&value);
    mRawData=&rawData;
-   return execProg(prog);
+   int retval = execProg(prog);
+#ifdef PACK_ASSERT
+   if (retval == VM_EXCEPTION_NO_EXCEPTION)
+   {
+      Q_ASSERT(mWriteNext == mWriteEnd);
+   }
+   mWriteNext = nullptr;
+   mWriteEnd = nullptr;
+#endif
+   return retval;
 }
 
 /**
@@ -95,10 +106,19 @@ int DataVM::exec(const QByteArray &prog, QByteArray &rawData, QVariant &value)
  * @return 0 on success or exception code on failure
  */
 int DataVM::exec(const QByteArray &prog, QByteArray &rawData, QVariantMap &value)
-{   
+{
    mState = DataVM::State(&value);
    mRawData=&rawData;
-   return execProg(prog);
+   int retval = execProg(prog);
+#ifdef PACK_ASSERT
+   if (retval == VM_EXCEPTION_NO_EXCEPTION)
+   {
+      Q_ASSERT(mWriteNext == mWriteEnd);
+   }
+   mWriteNext = nullptr;
+   mWriteEnd = nullptr;
+#endif
+   return retval;
 }
 
 int DataVM::execProg(const QByteArray &prog)
@@ -212,7 +232,7 @@ const char *DataVM::execOperation(int opCode,const char *pBegin, const char *pEn
    switch(opCode)
    {
    case OPCODE_NOP:
-      break;      
+      break;
    case OPCODE_ARGS:
       {
          int progType;
@@ -665,7 +685,6 @@ int DataVM::execPackString(int strLen)
    }
    //3. pack based on QVariantPtr type
    QByteArray tmp;
-   mReadNext+=strLen;
    if( (mState.value.type == VTYPE_SCALAR) && (mState.value.scalar != nullptr))
    {
       //4.1 unpack string
@@ -692,6 +711,7 @@ int DataVM::execPackString(int strLen)
          memset(mWriteNext, 0, static_cast<size_t>(strLen));
          //then copy string data into the nullified array. If the actual string is shorter than the allocated area, the null-bytes will act as null-terminators.
          memcpy(mWriteNext, tmp.constData(), static_cast<size_t>(actualLen));
+         mWriteNext += strLen;
       }
    }
    return exception;
