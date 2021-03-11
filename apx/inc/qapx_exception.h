@@ -4,6 +4,7 @@
 #ifndef QAPX_EXCEPTION_H
 #define QAPX_EXCEPTION_H
 #include <exception>
+#include <stdexcept>
 
 namespace Apx
 {
